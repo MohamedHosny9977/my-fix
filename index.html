@@ -20,8 +20,9 @@
         .status-green { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
         .status-red { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
         .status-orange { background-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
-        .activity-card { transition: all 0.2s; cursor: pointer; }
+        .activity-card, .device-row-card { transition: all 0.2s; cursor: pointer; }
         .activity-card:hover { transform: scale(1.02); background-color: #f8fafc; }
+        .device-row-card:hover { background-color: #f1f5f9; }
         .selectable { user-select: text !important; }
     </style>
 </head>
@@ -192,7 +193,7 @@
         </div>
     </div>
 
-    <!-- نافذة عرض كل التفاصيل عند الضغط على بطاقة في آخر 100 حركة -->
+    <!-- نافذة عرض كل التفاصيل عند الضغط على أي اسم أو كارت أو حركة -->
     <div id="repairedDetailsModal" class="fixed inset-0 z-[3500] hidden bg-slate-900/95 flex items-center justify-center p-3 sm:p-4 text-slate-800">
         <div class="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border-t-8 border-emerald-600">
             <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
@@ -998,9 +999,9 @@
                 const safeKey = escapeJsStr(dev._key);
 
                 html += `
-                    <tr class="hover:bg-slate-50/90 transition align-top">
+                    <tr onclick="openRepairedDetailsModal('${safeKey}')" class="device-row-card transition align-top">
                         <td class="p-4 text-right">
-                            <div class="font-black text-slate-800 text-sm selectable">${escapeHtml(dev.ownerName)}</div>
+                            <div class="font-black text-slate-800 text-sm selectable underline decoration-slate-300">${escapeHtml(dev.ownerName)}</div>
                             <div class="text-xs text-slate-500 font-mono mt-1 selectable" dir="ltr">${escapeHtml(dev.ownerPhone || 'بدون رقم')}</div>
                         </td>
                         <td class="p-4 text-right">
@@ -1019,7 +1020,7 @@
                         <td class="p-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap" dir="ltr">
                             ${escapeHtml(dev.date || '')}
                         </td>
-                        <td class="p-4 text-center whitespace-nowrap">
+                        <td onclick="event.stopPropagation()" class="p-4 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-1.5">
                                 <button type="button" onclick="openRepairedDetailsModal('${safeKey}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-xl text-xs font-bold transition">📋 تفاصيل</button>
                                 <button type="button" onclick="openEditRepairedModal('${safeKey}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">✏️ تعديل</button>
