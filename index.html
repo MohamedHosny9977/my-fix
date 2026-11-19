@@ -59,7 +59,7 @@
     </div>
 
     <!-- المحتوى الرئيسي -->
-    <div id="mainContent" class="hidden opacity-0 transition-opacity duration-700 p-2 md:p-6 w-full max-w-[1650px] mx-auto">
+    <div id="mainContent" class="hidden opacity-0 transition-opacity duration-700 p-2 md:p-6 w-full max-w-[1700px] mx-auto">
 
         <!-- الهيدر العلوي -->
         <div class="bg-slate-800 text-white p-6 rounded-[35px] shadow-xl mb-6 flex flex-col xl:flex-row justify-between items-center border-b-8 border-emerald-600 gap-4">
@@ -74,10 +74,18 @@
             <div class="flex flex-wrap gap-3 items-center justify-center">
                 <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
                     <div class="text-[10px] text-slate-400 font-bold">عدد الأجهزة</div>
-                    <div id="totalDevicesCount" class="text-lg font-black font-mono text-amber-400">0</div>
+                    <div id="totalDevicesCount" class="text-lg font-black font-mono text-sky-400">0</div>
                 </div>
                 <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">إجمالي القطع والمصنعية</div>
+                    <div class="text-[10px] text-slate-400 font-bold">إجمالي الصيانة</div>
+                    <div id="totalRepairCostSummary" class="text-lg font-black font-mono text-amber-400">0 ج.م</div>
+                </div>
+                <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">إجمالي القطع</div>
+                    <div id="totalPartsCostSummary" class="text-lg font-black font-mono text-indigo-400">0 ج.م</div>
+                </div>
+                <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">الإجمالي الكلي</div>
                     <div id="totalRepairedAmount" class="text-xl font-black font-mono text-emerald-400">0 ج.م</div>
                 </div>
                 <button type="button" onclick="requestNotifyPermissionManual()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg border-b-4 border-amber-700 active:border-b-0 active:translate-y-1">🔔 تفعيل الإشعارات</button>
@@ -88,36 +96,51 @@
 
         <!-- نموذج إضافة جهاز تم تصليحه -->
         <div class="bg-white p-6 rounded-[30px] shadow-sm mb-6 border border-slate-200">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 class="text-lg font-black text-slate-800">➕ تسجيل جهاز تم إصلاحه</h2>
                 <span class="text-xs font-bold text-slate-400">التاريخ والوقت يُسجَّلان تلقائياً ويمكن تعديلهما لاحقاً</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4">
-                <input type="text" id="rOwnerName" list="repNamesList" placeholder="اسم صاحب الجهاز *" class="md:col-span-3 p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-bold selectable">
-                <input type="text" id="rOwnerPhone" list="repPhonesList" placeholder="رقم التليفون *" class="md:col-span-2 p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-mono selectable">
-                <input type="text" id="rDeviceModel" list="repDevicesList" placeholder="نوع الجهاز *" class="md:col-span-3 p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-bold selectable">
-                <input type="number" id="rRepairCost" min="0" step="any" placeholder="تكلفة الصيانة (ج.م)" oninput="updateFormPreview()" class="md:col-span-2 p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-mono font-bold selectable">
-                <input type="text" id="rIssueDesc" placeholder="العطل / تفاصيل الإصلاح" class="md:col-span-2 p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 selectable">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-black text-slate-600 mb-1.5">اسم صاحب الجهاز *</label>
+                    <input type="text" id="rOwnerName" list="repNamesList" placeholder="مثال: أحمد محمد" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-bold selectable">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-600 mb-1.5">رقم التليفون *</label>
+                    <input type="text" id="rOwnerPhone" list="repPhonesList" placeholder="01xxxxxxxxx" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-mono selectable">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-600 mb-1.5">نوع الجهاز *</label>
+                    <input type="text" id="rDeviceModel" list="repDevicesList" placeholder="مثال: Redmi Note 12" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-bold selectable">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-amber-700 mb-1.5">تكلفة الصيانة (ج.م)</label>
+                    <input type="number" id="rRepairCost" min="0" step="any" placeholder="0" oninput="updateFormPreview()" class="w-full p-3 border-2 border-amber-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50/40 font-mono font-black text-amber-800 selectable">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-600 mb-1.5">العطل / تفاصيل الإصلاح</label>
+                    <input type="text" id="rIssueDesc" placeholder="مثال: تغيير شاشة / فاصل باور" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 selectable">
+                </div>
             </div>
 
             <!-- القطع المستخدمة وأسعارها -->
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4">
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
                     <span class="text-xs font-black text-slate-700">🧩 القطع المستخدمة وسعر كل قطعة:</span>
-                    <button type="button" onclick="addPartRow('add')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">+ إضافة قطعة أخرى</button>
+                    <button type="button" onclick="addPartRow('add')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">+ إضافة قطعة أخرى</button>
                 </div>
-                <div id="addPartsContainer" class="space-y-2"></div>
+                <div id="addPartsContainer" class="space-y-2.5"></div>
             </div>
 
             <!-- ملخص التكلفة وزر الحفظ -->
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100">
-                <div class="flex flex-wrap gap-4 text-xs font-black">
-                    <span class="bg-slate-100 px-3 py-2 rounded-xl text-slate-700">سعر القطع: <span id="previewPartsSum" class="font-mono text-indigo-600">0</span> ج.م</span>
-                    <span class="bg-slate-100 px-3 py-2 rounded-xl text-slate-700">تكلفة الصيانة: <span id="previewRepairCost" class="font-mono text-amber-600">0</span> ج.م</span>
-                    <span class="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl text-emerald-800 text-sm">الإجمالي الكلي: <span id="previewGrandTotal" class="font-mono text-base">0</span> ج.م</span>
+            <div class="flex flex-col lg:flex-row justify-between items-center gap-4 pt-3 border-t border-slate-100">
+                <div class="flex flex-wrap gap-3 text-xs font-black">
+                    <span class="bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-xl text-indigo-800">سعر القطع: <span id="previewPartsSum" class="font-mono text-sm">0</span> ج.م</span>
+                    <span class="bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl text-amber-800">تكلفة الصيانة: <span id="previewRepairCost" class="font-mono text-sm">0</span> ج.م</span>
+                    <span class="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl text-emerald-800 text-sm">الإجمالي الكلي: <span id="previewGrandTotal" class="font-mono text-base">0</span> ج.م</span>
                 </div>
-                <button type="button" onclick="saveRepairedDevice()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg transition active:scale-95">💾 حفظ الجهاز في السجل</button>
+                <button type="button" onclick="saveRepairedDevice()" class="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg transition active:scale-95">💾 حفظ الجهاز في السجل</button>
             </div>
         </div>
 
@@ -142,7 +165,7 @@
                             <input type="text" id="repairedSearchInput" oninput="renderRepairedTable()" placeholder="🔍 ابحث بالاسم، الرقم، الجهاز، القطعة، السعر، أو التاريخ..." class="w-full p-4 pl-10 border rounded-2xl outline-none shadow-sm font-bold text-sm selectable focus:ring-2 focus:ring-emerald-500">
                             <button type="button" onclick="document.getElementById('repairedSearchInput').value=''; renderRepairedTable();" class="absolute left-2 text-slate-400 hover:text-red-500 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full transition">&times;</button>
                         </div>
-                        <div id="filteredStatsBadge" class="text-xs font-black text-slate-500 bg-white px-4 py-2.5 rounded-2xl border border-slate-200">
+                        <div id="filteredStatsBadge" class="text-xs font-black text-slate-600 bg-white px-4 py-2.5 rounded-2xl border border-slate-200">
                             عرض: 0 سجل
                         </div>
                     </div>
@@ -155,7 +178,7 @@
                                     <th class="p-4 text-right">الجهاز والعطل</th>
                                     <th class="p-4 text-right">القطع المستخدمة وأسعارها</th>
                                     <th class="p-4 text-center">تكلفة الصيانة</th>
-                                    <th class="p-4 text-center">الإجمالي</th>
+                                    <th class="p-4 text-center">الإجمالي الكلي</th>
                                     <th class="p-4 text-center">التاريخ والوقت</th>
                                     <th class="p-4 text-center">إجراءات</th>
                                 </tr>
@@ -214,8 +237,8 @@
                         <input type="text" id="editRDeviceModel" list="repDevicesList" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-bold selectable">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">تكلفة الصيانة (ج.م)</label>
-                        <input type="number" id="editRRepairCost" min="0" step="any" oninput="updateEditPreview()" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-mono font-black text-blue-700 selectable">
+                        <label class="block text-xs font-bold text-amber-700 mb-1">تكلفة الصيانة (ج.م)</label>
+                        <input type="number" id="editRRepairCost" min="0" step="any" oninput="updateEditPreview()" class="w-full p-3 border-2 border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50/40 font-mono font-black text-amber-800 selectable">
                     </div>
                 </div>
 
@@ -238,7 +261,7 @@
                     <div id="editPartsContainer" class="space-y-2"></div>
                 </div>
 
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center text-xs font-black">
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 flex flex-wrap justify-between items-center gap-2 text-xs font-black">
                     <span>القطع: <span id="editPreviewPartsSum" class="font-mono text-indigo-700">0</span> ج.م | الصيانة: <span id="editPreviewRepairCost" class="font-mono text-amber-700">0</span> ج.م</span>
                     <span class="text-sm text-blue-900">الإجمالي: <span id="editPreviewGrandTotal" class="font-mono text-base">0</span> ج.م</span>
                 </div>
@@ -276,10 +299,8 @@
         let repairedLogs = [];
         let editingDeviceKey = null;
         let viewingDeviceKey = null;
-        let isInitialDevicesLoad = true;
         let isInitialLogsLoad = true;
         let alertTimeout = null;
-        let clientSessionId = 'sess_' + Math.random().toString(36).slice(2, 10);
 
         function fixPhone(ph) {
             ph = String(ph || '').trim();
@@ -292,6 +313,14 @@
 
         function escapeJsStr(str) {
             return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        }
+
+        function calcDeviceTotals(dev) {
+            const parts = Array.isArray(dev?.parts) ? dev.parts : [];
+            const partsTotal = parts.reduce((sum, p) => sum + (parseFloat(p?.price) || 0), 0);
+            const repairCost = parseFloat(dev?.repairCost) || 0;
+            const totalAmount = partsTotal + repairCost;
+            return { partsTotal, repairCost, totalAmount };
         }
 
         function updateSyncStatus(color, text) {
@@ -352,7 +381,7 @@
                 if (perm === "granted") {
                     triggerLiveAlert("🔔 تم تفعيل الإشعارات", "ستصلك التنبيهات على هذا الجهاز فور حدوث أي حركة جديدة.", new Date().toLocaleString('ar-EG'));
                 } else {
-                    alert("تم حظر إشعارات المتصفح. يمكنك تفعيلها من إعدادات الموقع في المتصفح (أيقونة القفل بجانب الرابط).");
+                    alert("تم حظر إشعارات المتصفح. يمكنك تفعيلها من إعدادات الموقع في المتصفح.");
                 }
             });
         }
@@ -455,7 +484,6 @@
 
             repairedDevices = [];
             repairedLogs = [];
-            isInitialDevicesLoad = true;
             isInitialLogsLoad = true;
 
             devRef.on('child_added', (snap) => {
@@ -499,7 +527,7 @@
                 if (!repairedLogs.some(l => l._key === snap.key)) {
                     repairedLogs.push(log);
                     if (!isInitialLogsLoad) {
-                        const msg = `${log.ownerName || ''} - ${log.deviceModel || ''} (${(parseFloat(log.totalAmount) || 0).toLocaleString()} ج.م)`;
+                        const msg = `${log.ownerName || ''} - ${log.deviceModel || ''} | صيانة: ${(parseFloat(log.repairCost) || 0).toLocaleString()} ج | إجمالي: ${(parseFloat(log.totalAmount) || 0).toLocaleString()} ج`;
                         triggerLiveAlert(log.action || 'حركة جديدة', msg, log.date);
                     }
                 }
@@ -520,7 +548,6 @@
                 persistAndRender();
             });
 
-            devRef.once('value', () => { isInitialDevicesLoad = false; });
             logRef.once('value', () => { isInitialLogsLoad = false; });
 
             database.ref('.info/connected').on('value', (snap) => {
@@ -568,7 +595,7 @@
         function addPartRow(mode, partName = '', partPrice = '') {
             const container = document.getElementById(mode === 'add' ? 'addPartsContainer' : 'editPartsContainer');
             const row = document.createElement('div');
-            row.className = 'part-row grid grid-cols-1 sm:grid-cols-12 gap-2 items-center';
+            row.className = 'part-row grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center';
             const onChangeFn = mode === 'add' ? 'updateFormPreview()' : 'updateEditPreview()';
 
             row.innerHTML = `
@@ -630,16 +657,18 @@
         }
 
         async function pushLog(actionLabel, deviceData, deviceKey) {
+            const totals = calcDeviceTotals(deviceData);
             const logId = Date.now() + '_' + Math.floor(Math.random() * 1000);
             await database.ref(`${LOGS_PATH}/${logId}`).set({
                 id: logId,
                 deviceKey: deviceKey || '',
-                senderSession: clientSessionId,
                 action: actionLabel,
                 ownerName: deviceData.ownerName || '',
                 ownerPhone: deviceData.ownerPhone || '',
                 deviceModel: deviceData.deviceModel || '',
-                totalAmount: deviceData.totalAmount || 0,
+                partsTotal: totals.partsTotal,
+                repairCost: totals.repairCost,
+                totalAmount: totals.totalAmount,
                 date: new Date().toLocaleString('ar-EG'),
                 timestamp: Date.now()
             });
@@ -697,7 +726,6 @@
             }
         }
 
-        // فتح نافذة كل التفاصيل عند الضغط على بطاقة في آخر 100 حركة
         function openRepairedDetailsModal(key) {
             const dev = repairedDevices.find(d => d && d._key === key && !d.deleted);
             if (!dev) {
@@ -707,9 +735,7 @@
 
             viewingDeviceKey = key;
             const partsList = Array.isArray(dev.parts) ? dev.parts : [];
-            const partsSum = partsList.reduce((s, p) => s + (parseFloat(p.price) || 0), 0);
-            const repairCost = parseFloat(dev.repairCost) || 0;
-            const totalAmount = parseFloat(dev.totalAmount) || (partsSum + repairCost);
+            const { partsTotal, repairCost, totalAmount } = calcDeviceTotals(dev);
 
             const partsRowsHtml = partsList.length > 0
                 ? partsList.map((p, idx) => `
@@ -756,7 +782,7 @@
                 <div class="grid grid-cols-3 gap-2.5 pt-2">
                     <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-100 text-center">
                         <div class="text-[10px] text-indigo-600 font-bold">سعر القطع</div>
-                        <div class="font-mono font-black text-base text-indigo-800">${partsSum.toLocaleString()} ج.م</div>
+                        <div class="font-mono font-black text-base text-indigo-800">${partsTotal.toLocaleString()} ج.م</div>
                     </div>
                     <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100 text-center">
                         <div class="text-[10px] text-amber-700 font-bold">تكلفة الصيانة</div>
@@ -790,9 +816,9 @@
                     `الموبايل: ${dev.ownerPhone || '-'}`,
                     `الجهاز: ${dev.deviceModel}`,
                     `العطل/الإصلاح: ${dev.issueDesc || '-'}`,
-                    `القطع: ${partsSummary}`,
+                    `القطع: ${partsSummary} (إجمالي القطع: ${partsTotal} ج.م)`,
                     `تكلفة الصيانة: ${repairCost} ج.م`,
-                    `الإجمالي: ${totalAmount} ج.م`,
+                    `الإجمالي الكلي: ${totalAmount} ج.م`,
                     `التاريخ: ${dev.date || ''}`
                 ].join('\n');
                 navigator.clipboard?.writeText(text).then(() => {
@@ -821,6 +847,7 @@
                         <div class="box">
                             <strong>القطع المستخدمة:</strong>
                             <ul>${partsSummary}</ul>
+                            <p><strong>إجمالي القطع:</strong> ${partsTotal.toLocaleString()} ج.م</p>
                             <p><strong>تكلفة الصيانة:</strong> ${repairCost.toLocaleString()} ج.م</p>
                             <p style="font-size:18px"><strong>الإجمالي الكلي:</strong> ${totalAmount.toLocaleString()} ج.م</p>
                         </div>
@@ -938,14 +965,22 @@
                 })
                 .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
+            let grandRepairCost = 0;
+            let grandPartsCost = 0;
             let grandTotal = 0;
+
             activeList.forEach(d => {
-                grandTotal += (parseFloat(d.totalAmount) || 0);
+                const t = calcDeviceTotals(d);
+                grandRepairCost += t.repairCost;
+                grandPartsCost += t.partsTotal;
+                grandTotal += t.totalAmount;
             });
 
             document.getElementById('totalDevicesCount').innerText = activeList.length.toLocaleString();
+            document.getElementById('totalRepairCostSummary').innerText = grandRepairCost.toLocaleString() + " ج.م";
+            document.getElementById('totalPartsCostSummary').innerText = grandPartsCost.toLocaleString() + " ج.م";
             document.getElementById('totalRepairedAmount').innerText = grandTotal.toLocaleString() + " ج.م";
-            document.getElementById('filteredStatsBadge').innerText = `عرض: ${activeList.length} سجل | الإجمالي: ${grandTotal.toLocaleString()} ج.م`;
+            document.getElementById('filteredStatsBadge').innerText = `عرض: ${activeList.length} سجل | صيانة: ${grandRepairCost.toLocaleString()} ج | قطع: ${grandPartsCost.toLocaleString()} ج | إجمالي: ${grandTotal.toLocaleString()} ج`;
 
             if (activeList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400 font-bold">لا توجد أجهزة مُصلَّحة مطابقة للبحث حالياً</td></tr>`;
@@ -954,9 +989,11 @@
 
             let html = '';
             activeList.forEach(dev => {
+                const { partsTotal, repairCost, totalAmount } = calcDeviceTotals(dev);
                 const partsHtml = (Array.isArray(dev.parts) && dev.parts.length > 0)
-                    ? dev.parts.map(p => `<div class="flex justify-between items-center gap-2 bg-indigo-50/70 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs mb-1"><span class="font-bold text-slate-700">${escapeHtml(p.name)}</span><span class="font-mono font-black text-indigo-700">${(parseFloat(p.price) || 0).toLocaleString()} ج</span></div>`).join('')
-                    : `<span class="text-xs text-slate-400 font-bold">لا توجد قطع</span>`;
+                    ? dev.parts.map(p => `<div class="flex justify-between items-center gap-2 bg-indigo-50/70 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs mb-1"><span class="font-bold text-slate-700">${escapeHtml(p.name)}</span><span class="font-mono font-black text-indigo-700">${(parseFloat(p.price) || 0).toLocaleString()} ج</span></div>`).join('') +
+                      `<div class="text-[10px] font-mono font-bold text-indigo-600 mt-1">مجموع القطع: ${partsTotal.toLocaleString()} ج</div>`
+                    : `<span class="text-xs text-slate-400 font-bold">لا توجد قطع (0 ج)</span>`;
 
                 const safeKey = escapeJsStr(dev._key);
 
@@ -970,14 +1007,14 @@
                             <div class="font-black text-slate-800 text-sm selectable">📱 ${escapeHtml(dev.deviceModel)}</div>
                             <div class="text-xs text-slate-500 mt-1 selectable">${escapeHtml(dev.issueDesc || 'تم الإصلاح')}</div>
                         </td>
-                        <td class="p-4 text-right min-w-[180px]">
+                        <td class="p-4 text-right min-w-[190px]">
                             ${partsHtml}
                         </td>
-                        <td class="p-4 text-center font-mono font-bold text-amber-700 text-sm">
-                            ${(parseFloat(dev.repairCost) || 0).toLocaleString()} ج.م
+                        <td class="p-4 text-center font-mono font-black text-amber-700 text-sm">
+                            ${repairCost.toLocaleString()} ج.م
                         </td>
                         <td class="p-4 text-center font-mono font-black text-emerald-700 text-base">
-                            ${(parseFloat(dev.totalAmount) || 0).toLocaleString()} ج.م
+                            ${totalAmount.toLocaleString()} ج.م
                         </td>
                         <td class="p-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap" dir="ltr">
                             ${escapeHtml(dev.date || '')}
@@ -1023,8 +1060,15 @@
                     badgeCls = 'text-red-700 bg-red-100';
                 }
 
-                const canOpen = log.deviceKey && repairedDevices.some(d => d && d._key === log.deviceKey && !d.deleted);
-                const clickAttr = canOpen ? `onclick="openRepairedDetailsModal('${escapeJsStr(log.deviceKey)}')"` : `onclick="alert('هذا السجل تم حذفه أو لا يرتبط بجهاز نشط.')"`;
+                const linkedDev = log.deviceKey ? repairedDevices.find(d => d && d._key === log.deviceKey && !d.deleted) : null;
+                const totals = linkedDev ? calcDeviceTotals(linkedDev) : {
+                    repairCost: parseFloat(log.repairCost) || 0,
+                    totalAmount: parseFloat(log.totalAmount) || 0
+                };
+
+                const clickAttr = linkedDev
+                    ? `onclick="openRepairedDetailsModal('${escapeJsStr(log.deviceKey)}')"`
+                    : `onclick="alert('هذا السجل تم حذفه أو لا يرتبط بجهاز نشط.')"`;
 
                 html += `
                     <div ${clickAttr} class="activity-card p-3 rounded-2xl border border-slate-200 shadow-sm ${borderCls}">
@@ -1032,9 +1076,12 @@
                             <span class="font-black text-xs text-slate-800 truncate">${escapeHtml(log.ownerName || 'عميل')}</span>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${badgeCls}">${escapeHtml(log.action || 'حركة')}</span>
                         </div>
-                        <div class="flex justify-between items-center text-[11px] text-slate-600 font-bold">
-                            <span class="truncate">📱 ${escapeHtml(log.deviceModel || '')}</span>
-                            <span class="font-mono font-black text-slate-800 shrink-0">${(parseFloat(log.totalAmount) || 0).toLocaleString()} ج</span>
+                        <div class="text-[11px] text-slate-700 font-bold truncate mb-1">
+                            📱 ${escapeHtml(log.deviceModel || '')}
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] font-mono font-bold bg-white/80 px-2 py-1 rounded-lg border border-slate-100">
+                            <span class="text-amber-700">صيانة: ${totals.repairCost.toLocaleString()} ج</span>
+                            <span class="text-emerald-700 font-black">إجمالي: ${totals.totalAmount.toLocaleString()} ج</span>
                         </div>
                         <div class="flex justify-between items-center text-[9px] text-slate-400 font-mono mt-1.5 pt-1 border-t border-slate-100">
                             <span dir="ltr">${escapeHtml(log.ownerPhone || '')}</span>
@@ -1054,10 +1101,11 @@
                 return;
             }
 
-            const headers = ["اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "القطع وأسعارها", "تكلفة الصيانة", "الإجمالي", "التاريخ والوقت"];
+            const headers = ["اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "القطع وأسعارها", "إجمالي القطع", "تكلفة الصيانة", "الإجمالي الكلي", "التاريخ والوقت"];
             const csvLines = [headers.join(',')];
 
             rows.forEach(d => {
+                const { partsTotal, repairCost, totalAmount } = calcDeviceTotals(d);
                 const partsStr = Array.isArray(d.parts)
                     ? d.parts.map(p => `${p.name} (${p.price})`).join(' | ')
                     : '';
@@ -1067,8 +1115,9 @@
                     d.deviceModel || '',
                     d.issueDesc || '',
                     partsStr,
-                    d.repairCost || 0,
-                    d.totalAmount || 0,
+                    partsTotal,
+                    repairCost,
+                    totalAmount,
                     d.date || ''
                 ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
                 csvLines.push(line);
