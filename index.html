@@ -27,6 +27,18 @@
 </head>
 <body class="text-slate-800 relative bg-slate-50">
 
+    <!-- بانر إشعار لحظي داخل الصفحة يصل لكل الأجهزة المتصلة -->
+    <div id="liveAlertBanner" class="fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[6000] hidden transition-all duration-300">
+        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border-r-8 border-emerald-500 flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+                <div id="liveAlertTitle" class="font-black text-sm text-emerald-400 mb-1">إشعار جديد</div>
+                <div id="liveAlertBody" class="text-xs text-slate-200 font-bold leading-relaxed break-words"></div>
+                <div id="liveAlertTime" class="text-[10px] text-slate-400 font-mono mt-1" dir="ltr"></div>
+            </div>
+            <button type="button" onclick="hideLiveAlert()" class="text-slate-400 hover:text-white text-xl font-bold leading-none px-1">&times;</button>
+        </div>
+    </div>
+
     <!-- قوائم الإكمال التلقائي المستقلة -->
     <datalist id="repNamesList"></datalist>
     <datalist id="repPhonesList"></datalist>
@@ -68,6 +80,7 @@
                     <div class="text-[10px] text-slate-400 font-bold">إجمالي القطع والمصنعية</div>
                     <div id="totalRepairedAmount" class="text-xl font-black font-mono text-emerald-400">0 ج.م</div>
                 </div>
+                <button type="button" onclick="requestNotifyPermissionManual()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg border-b-4 border-amber-700 active:border-b-0 active:translate-y-1">🔔 تفعيل الإشعارات</button>
                 <button type="button" onclick="exportRepairedCSV()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg border-b-4 border-blue-700 active:border-b-0 active:translate-y-1">📥 تصدير CSV</button>
                 <button type="button" onclick="logoutUser()" class="bg-red-500/20 hover:bg-red-500 text-red-200 p-2.5 rounded-2xl text-xs transition font-bold">خروج 🚪</button>
             </div>
@@ -108,10 +121,10 @@
             </div>
         </div>
 
-        <!-- المحتوى السفلي: الجدول على اليسار + شريط آخر 100 حركة على اليمين -->
+        <!-- المحتوى السفلي: شريط آخر 100 حركة على اليمين + الجدول -->
         <div class="flex flex-col lg:flex-row gap-6">
 
-            <!-- شريط آخر 100 حركة في الجنب اليمين (في RTL يظهر أولاً على اليمين) -->
+            <!-- شريط آخر 100 حركة في الجنب اليمين -->
             <div class="lg:w-80 shrink-0">
                 <div class="bg-white rounded-[30px] shadow-sm border border-slate-200 overflow-hidden sticky top-4 flex flex-col h-[78vh]">
                     <div class="p-4 bg-slate-800 text-white text-center text-sm italic border-b border-slate-700 shrink-0 font-bold">
@@ -153,6 +166,25 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- نافذة عرض كل التفاصيل عند الضغط على بطاقة في آخر 100 حركة -->
+    <div id="repairedDetailsModal" class="fixed inset-0 z-[3500] hidden bg-slate-900/95 flex items-center justify-center p-3 sm:p-4 text-slate-800">
+        <div class="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border-t-8 border-emerald-600">
+            <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
+                <h3 class="text-lg sm:text-xl font-black">📋 تفاصيل سجل الجهاز المُصلَّح</h3>
+                <button type="button" onclick="closeRepairedDetailsModal()" class="text-3xl font-bold hover:text-red-400 transition leading-none">&times;</button>
+            </div>
+
+            <div id="repairedDetailsBody" class="p-5 overflow-y-auto custom-scrollbar space-y-4"></div>
+
+            <div class="p-4 bg-slate-50 border-t flex flex-wrap gap-2 justify-end shrink-0">
+                <button type="button" id="detailsCopySummaryBtn" class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-black transition">📋 نسخ الملخص</button>
+                <button type="button" id="detailsPrintBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-black transition">🖨️ طباعة</button>
+                <button type="button" id="detailsEditBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-black transition">✏️ تعديل كل التفاصيل</button>
+                <button type="button" id="detailsDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-xs font-black transition">🗑️ حذف</button>
+            </div>
         </div>
     </div>
 
@@ -219,7 +251,6 @@
     </div>
 
     <script>
-        // إعدادات Firebase - معزولة تماماً في مسارات repaired_devices و repaired_logs
         const firebaseConfig = {
             apiKey: "AIzaSyD2onEsi9G3PZfiwAdtQb1G9Kvmwyf4rvI",
             authDomain: "mohamed-ledger.firebaseapp.com",
@@ -244,8 +275,11 @@
         let repairedDevices = [];
         let repairedLogs = [];
         let editingDeviceKey = null;
+        let viewingDeviceKey = null;
         let isInitialDevicesLoad = true;
         let isInitialLogsLoad = true;
+        let alertTimeout = null;
+        let clientSessionId = 'sess_' + Math.random().toString(36).slice(2, 10);
 
         function fixPhone(ph) {
             ph = String(ph || '').trim();
@@ -268,6 +302,59 @@
                 txt.innerText = text;
                 txt.className = `text-[10px] font-mono text-${color === 'green' ? 'emerald' : (color === 'orange' ? 'amber' : 'red')}-400 font-bold`;
             }
+        }
+
+        function hideLiveAlert() {
+            const banner = document.getElementById('liveAlertBanner');
+            if (banner) banner.classList.add('hidden');
+        }
+
+        function playAlertBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(740, ctx.currentTime);
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.16);
+            } catch (e) {}
+        }
+
+        function triggerLiveAlert(title, body, timeStr) {
+            const banner = document.getElementById('liveAlertBanner');
+            if (!banner) return;
+            document.getElementById('liveAlertTitle').innerText = title;
+            document.getElementById('liveAlertBody').innerText = body;
+            document.getElementById('liveAlertTime').innerText = timeStr || new Date().toLocaleString('ar-EG');
+            banner.classList.remove('hidden');
+            playAlertBeep();
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification(title, { body, dir: "rtl" });
+                } catch (e) {}
+            }
+
+            clearTimeout(alertTimeout);
+            alertTimeout = setTimeout(hideLiveAlert, 5500);
+        }
+
+        function requestNotifyPermissionManual() {
+            if (!("Notification" in window)) {
+                alert("هذا المتصفح لا يدعم إشعارات النظام، لكن الإشعارات الفورية داخل الصفحة تعمل تلقائياً.");
+                return;
+            }
+            Notification.requestPermission().then((perm) => {
+                if (perm === "granted") {
+                    triggerLiveAlert("🔔 تم تفعيل الإشعارات", "ستصلك التنبيهات على هذا الجهاز فور حدوث أي حركة جديدة.", new Date().toLocaleString('ar-EG'));
+                } else {
+                    alert("تم حظر إشعارات المتصفح. يمكنك تفعيلها من إعدادات الموقع في المتصفح (أيقونة القفل بجانب الرابط).");
+                }
+            });
         }
 
         window.onload = () => {
@@ -347,14 +434,9 @@
             startStandaloneSync();
         }
 
-        function fireDesktopNotification(title, body) {
-            if (!("Notification" in window) || Notification.permission !== "granted") return;
-            new Notification(title, { body, dir: "rtl" });
-        }
-
         function startStandaloneSync() {
             if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission();
+                Notification.requestPermission().catch(() => {});
             }
 
             try {
@@ -382,9 +464,6 @@
                 item._key = snap.key;
                 if (!repairedDevices.some(d => d._key === snap.key)) {
                     repairedDevices.push(item);
-                    if (!isInitialDevicesLoad) {
-                        fireDesktopNotification("🛠️ جهاز مُصلَّح جديد", `${item.ownerName} - ${item.deviceModel} (${item.totalAmount || 0} ج.م)`);
-                    }
                 }
                 persistAndRender();
             });
@@ -401,11 +480,16 @@
                     else repairedDevices.push(item);
                 }
                 persistAndRender();
+                if (viewingDeviceKey === snap.key) {
+                    if (item.deleted) closeRepairedDetailsModal();
+                    else openRepairedDetailsModal(snap.key);
+                }
             });
 
             devRef.on('child_removed', (snap) => {
                 repairedDevices = repairedDevices.filter(d => d._key !== snap.key);
                 persistAndRender();
+                if (viewingDeviceKey === snap.key) closeRepairedDetailsModal();
             });
 
             logRef.on('child_added', (snap) => {
@@ -414,6 +498,10 @@
                 log._key = snap.key;
                 if (!repairedLogs.some(l => l._key === snap.key)) {
                     repairedLogs.push(log);
+                    if (!isInitialLogsLoad) {
+                        const msg = `${log.ownerName || ''} - ${log.deviceModel || ''} (${(parseFloat(log.totalAmount) || 0).toLocaleString()} ج.م)`;
+                        triggerLiveAlert(log.action || 'حركة جديدة', msg, log.date);
+                    }
                 }
                 persistAndRender();
             });
@@ -477,7 +565,6 @@
             document.getElementById('repPartsList').innerHTML = [...parts].map(v => `<option value="${escapeHtml(v)}">`).join('');
         }
 
-        // إدارة صفوف القطع المستخدمة وأسعارها
         function addPartRow(mode, partName = '', partPrice = '') {
             const container = document.getElementById(mode === 'add' ? 'addPartsContainer' : 'editPartsContainer');
             const row = document.createElement('div');
@@ -547,6 +634,7 @@
             await database.ref(`${LOGS_PATH}/${logId}`).set({
                 id: logId,
                 deviceKey: deviceKey || '',
+                senderSession: clientSessionId,
                 action: actionLabel,
                 ownerName: deviceData.ownerName || '',
                 ownerPhone: deviceData.ownerPhone || '',
@@ -609,8 +697,149 @@
             }
         }
 
+        // فتح نافذة كل التفاصيل عند الضغط على بطاقة في آخر 100 حركة
+        function openRepairedDetailsModal(key) {
+            const dev = repairedDevices.find(d => d && d._key === key && !d.deleted);
+            if (!dev) {
+                alert("هذا السجل غير متاح أو تم حذفه.");
+                return;
+            }
+
+            viewingDeviceKey = key;
+            const partsList = Array.isArray(dev.parts) ? dev.parts : [];
+            const partsSum = partsList.reduce((s, p) => s + (parseFloat(p.price) || 0), 0);
+            const repairCost = parseFloat(dev.repairCost) || 0;
+            const totalAmount = parseFloat(dev.totalAmount) || (partsSum + repairCost);
+
+            const partsRowsHtml = partsList.length > 0
+                ? partsList.map((p, idx) => `
+                    <div class="flex justify-between items-center bg-indigo-50/70 border border-indigo-100 px-3.5 py-2 rounded-xl text-sm">
+                        <span class="font-bold text-slate-800">${idx + 1}. ${escapeHtml(p.name)}</span>
+                        <span class="font-mono font-black text-indigo-700">${(parseFloat(p.price) || 0).toLocaleString()} ج.م</span>
+                    </div>
+                `).join('')
+                : `<div class="text-xs text-slate-400 font-bold bg-slate-50 p-3 rounded-xl border border-slate-100">لا توجد قطع مستخدمة مسجلة</div>`;
+
+            document.getElementById('repairedDetailsBody').innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        <div class="text-[11px] text-slate-400 font-bold mb-1">صاحب الجهاز</div>
+                        <div class="font-black text-base text-slate-800 selectable">${escapeHtml(dev.ownerName)}</div>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        <div class="text-[11px] text-slate-400 font-bold mb-1">رقم التليفون</div>
+                        <div class="font-black text-base text-slate-800 font-mono selectable" dir="ltr">${escapeHtml(dev.ownerPhone || 'بدون رقم')}</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        <div class="text-[11px] text-slate-400 font-bold mb-1">نوع الجهاز</div>
+                        <div class="font-black text-base text-slate-800 selectable">📱 ${escapeHtml(dev.deviceModel)}</div>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        <div class="text-[11px] text-slate-400 font-bold mb-1">التاريخ والوقت</div>
+                        <div class="font-bold text-xs text-slate-700 font-mono mt-1 selectable" dir="ltr">${escapeHtml(dev.date || '')}</div>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200">
+                    <div class="text-[11px] text-amber-700 font-bold mb-1">العطل / تفاصيل الإصلاح</div>
+                    <div class="font-bold text-sm text-slate-800 selectable">${escapeHtml(dev.issueDesc || 'لا يوجد وصف إضافي')}</div>
+                </div>
+
+                <div>
+                    <div class="text-xs font-black text-slate-700 mb-2">🧩 القطع المستخدمة وأسعارها:</div>
+                    <div class="space-y-2">${partsRowsHtml}</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5 pt-2">
+                    <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-100 text-center">
+                        <div class="text-[10px] text-indigo-600 font-bold">سعر القطع</div>
+                        <div class="font-mono font-black text-base text-indigo-800">${partsSum.toLocaleString()} ج.م</div>
+                    </div>
+                    <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100 text-center">
+                        <div class="text-[10px] text-amber-700 font-bold">تكلفة الصيانة</div>
+                        <div class="font-mono font-black text-base text-amber-800">${repairCost.toLocaleString()} ج.م</div>
+                    </div>
+                    <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-center">
+                        <div class="text-[10px] text-emerald-700 font-bold">الإجمالي الكلي</div>
+                        <div class="font-mono font-black text-lg text-emerald-800">${totalAmount.toLocaleString()} ج.م</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detailsEditBtn').onclick = () => {
+                const targetKey = viewingDeviceKey;
+                closeRepairedDetailsModal();
+                openEditRepairedModal(targetKey);
+            };
+
+            document.getElementById('detailsDeleteBtn').onclick = () => {
+                const targetKey = viewingDeviceKey;
+                closeRepairedDetailsModal();
+                deleteRepairedDevice(targetKey);
+            };
+
+            document.getElementById('detailsCopySummaryBtn').onclick = () => {
+                const partsSummary = partsList.length > 0
+                    ? partsList.map(p => `${p.name}: ${p.price} ج.م`).join('، ')
+                    : 'لا يوجد';
+                const text = [
+                    `العميل: ${dev.ownerName}`,
+                    `الموبايل: ${dev.ownerPhone || '-'}`,
+                    `الجهاز: ${dev.deviceModel}`,
+                    `العطل/الإصلاح: ${dev.issueDesc || '-'}`,
+                    `القطع: ${partsSummary}`,
+                    `تكلفة الصيانة: ${repairCost} ج.م`,
+                    `الإجمالي: ${totalAmount} ج.م`,
+                    `التاريخ: ${dev.date || ''}`
+                ].join('\n');
+                navigator.clipboard?.writeText(text).then(() => {
+                    triggerLiveAlert("📋 تم النسخ", "تم نسخ تفاصيل الجهاز إلى الحافظة.", new Date().toLocaleString('ar-EG'));
+                }).catch(() => alert("تعذر النسخ التلقائي."));
+            };
+
+            document.getElementById('detailsPrintBtn').onclick = () => {
+                const partsSummary = partsList.length > 0
+                    ? partsList.map(p => `<li>${escapeHtml(p.name)} — <strong>${(parseFloat(p.price) || 0).toLocaleString()} ج.م</strong></li>`).join('')
+                    : '<li>لا توجد قطع مستخدمة</li>';
+                const win = window.open('', '_blank', 'width=600,height=700');
+                if (!win) return;
+                win.document.write(`
+                    <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>إيصال صيانة</title>
+                    <style>body{font-family:Tajawal,sans-serif;padding:28px;color:#1e293b}h2{margin-top:0}ul{padding-right:20px}.box{border:1px solid #cbd5e1;border-radius:12px;padding:16px;margin-bottom:14px}</style></head>
+                    <body>
+                        <h2>فاتورة / تفاصيل جهاز مُصلَّح</h2>
+                        <div class="box">
+                            <p><strong>صاحب الجهاز:</strong> ${escapeHtml(dev.ownerName)}</p>
+                            <p><strong>رقم التليفون:</strong> <span dir="ltr">${escapeHtml(dev.ownerPhone || 'بدون رقم')}</span></p>
+                            <p><strong>نوع الجهاز:</strong> ${escapeHtml(dev.deviceModel)}</p>
+                            <p><strong>العطل / الإصلاح:</strong> ${escapeHtml(dev.issueDesc || '-')}</p>
+                            <p><strong>التاريخ والوقت:</strong> <span dir="ltr">${escapeHtml(dev.date || '')}</span></p>
+                        </div>
+                        <div class="box">
+                            <strong>القطع المستخدمة:</strong>
+                            <ul>${partsSummary}</ul>
+                            <p><strong>تكلفة الصيانة:</strong> ${repairCost.toLocaleString()} ج.م</p>
+                            <p style="font-size:18px"><strong>الإجمالي الكلي:</strong> ${totalAmount.toLocaleString()} ج.م</p>
+                        </div>
+                    </body></html>
+                `);
+                win.document.close();
+                win.print();
+            };
+
+            document.getElementById('repairedDetailsModal').classList.remove('hidden');
+        }
+
+        function closeRepairedDetailsModal() {
+            document.getElementById('repairedDetailsModal').classList.add('hidden');
+            viewingDeviceKey = null;
+        }
+
         function openEditRepairedModal(key) {
-            const dev = repairedDevices.find(d => d && d._key === key);
+            const dev = repairedDevices.find(d => d && d._key === key && !d.deleted);
             if (!dev) return;
 
             editingDeviceKey = key;
@@ -755,6 +984,7 @@
                         </td>
                         <td class="p-4 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-1.5">
+                                <button type="button" onclick="openRepairedDetailsModal('${safeKey}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-xl text-xs font-bold transition">📋 تفاصيل</button>
                                 <button type="button" onclick="openEditRepairedModal('${safeKey}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">✏️ تعديل</button>
                                 <button type="button" onclick="deleteRepairedDevice('${safeKey}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">🗑️ حذف</button>
                             </div>
@@ -794,7 +1024,7 @@
                 }
 
                 const canOpen = log.deviceKey && repairedDevices.some(d => d && d._key === log.deviceKey && !d.deleted);
-                const clickAttr = canOpen ? `onclick="openEditRepairedModal('${escapeJsStr(log.deviceKey)}')"` : '';
+                const clickAttr = canOpen ? `onclick="openRepairedDetailsModal('${escapeJsStr(log.deviceKey)}')"` : `onclick="alert('هذا السجل تم حذفه أو لا يرتبط بجهاز نشط.')"`;
 
                 html += `
                     <div ${clickAttr} class="activity-card p-3 rounded-2xl border border-slate-200 shadow-sm ${borderCls}">
