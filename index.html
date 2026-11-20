@@ -24,7 +24,7 @@
         .activity-card:hover { transform: scale(1.02); background-color: #f8fafc; }
         .device-row-card:hover { background-color: #f1f5f9; }
         .selectable { user-select: text !important; }
-        .settled-box { border: 2px solid #0ea5e9; background: #ffffff; box-shadow: 0 10px 28px rgba(14, 165, 233, 0.08); }
+        .settled-batch-card { border: 2px solid #0ea5e9; background: #ffffff; box-shadow: 0 10px 28px rgba(14, 165, 233, 0.08); }
     </style>
 </head>
 <body class="text-slate-800 relative bg-slate-50">
@@ -159,7 +159,7 @@
                 </div>
             </div>
 
-            <!-- عمود الجداول والمربع المُصفّى -->
+            <!-- عمود الجداول والمربعات المستقلة للتصفية -->
             <div class="flex-1 min-w-0 space-y-6">
 
                 <!-- جدول الأجهزة النشطة التي تم إصلاحها -->
@@ -198,53 +198,8 @@
                     </div>
                 </div>
 
-                <!-- مربع الشغل المُصفّى بنفس الترتيب + إجمالي الصافي أسفله -->
-                <div id="settledWorkBox" class="settled-box rounded-[35px] overflow-hidden">
-                    <div class="p-5 bg-gradient-to-l from-sky-700 to-slate-800 text-white flex flex-wrap justify-between items-center gap-2">
-                        <div class="font-black text-base flex items-center gap-2">
-                            <span>📦 الشغل المُصفّى</span>
-                            <span id="settledCountBadge" class="bg-white/20 text-white text-xs px-3 py-0.5 rounded-full font-mono">0 جهاز</span>
-                        </div>
-                        <span id="lastSettledDateLabel" class="text-xs font-mono text-sky-200"></span>
-                    </div>
-
-                    <div class="overflow-x-auto bg-white">
-                        <table class="w-full text-right border-collapse">
-                            <thead>
-                                <tr class="bg-sky-50 text-sky-950 text-xs uppercase font-black border-b border-sky-100">
-                                    <th class="p-4 text-right">صاحب الجهاز والموبايل</th>
-                                    <th class="p-4 text-right">الجهاز والعطل</th>
-                                    <th class="p-4 text-center">تكلفة الصيانة</th>
-                                    <th class="p-4 text-right">القطع المستخدمة وأسعارها</th>
-                                    <th class="p-4 text-center">صافي التكلفة</th>
-                                    <th class="p-4 text-center">التاريخ والوقت</th>
-                                    <th class="p-4 text-center">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="settledTableBody" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- شريط إجمالي الصافي أسفل المربع بشكل أنيق -->
-                    <div class="p-5 bg-gradient-to-l from-amber-50 via-white to-emerald-50 border-t-2 border-sky-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-black">
-                            <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
-                                عدد الأجهزة المُصفّاة: <span id="settledDevicesSummary" class="font-mono text-sky-700 text-sm">0</span>
-                            </span>
-                            <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
-                                إجمالي الصيانة: <span id="settledRepairSummary" class="font-mono text-emerald-700 text-sm">0</span> ج.م
-                            </span>
-                            <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
-                                إجمالي القطع: <span id="settledPartsSummary" class="font-mono text-indigo-700 text-sm">0</span> ج.م
-                            </span>
-                        </div>
-
-                        <div class="bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-lg border-r-4 border-amber-400 flex items-center gap-3">
-                            <span class="text-xs font-bold text-amber-300">إجمالي الصافي:</span>
-                            <span id="settledNetTotalDisplay" class="text-2xl font-black font-mono text-amber-400">0 ج.م</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- حاوية المربعات المستقلة لكل عملية تصفية -->
+                <div id="settledBatchesContainer" class="space-y-6"></div>
 
             </div>
 
@@ -817,34 +772,36 @@
                 netSum += calcDeviceTotals(d).netRepair;
             });
 
-            if (!confirm(`تأكيد تصفية (${targets.length}) جهاز بإجمالي صافي (${netSum.toLocaleString()} ج.م) ونقلها إلى مربع الشغل المُصفّى؟`)) {
+            if (!confirm(`تأكيد تصفية (${targets.length}) جهاز في مربع مستقل بإجمالي صافي (${netSum.toLocaleString()} ج.م)؟`)) {
                 return;
             }
 
-            const settledAtStr = new Date().toLocaleString('ar-EG');
-            const settledBatchId = 'settle_' + Date.now();
+            const settledAtTs = Date.now();
+            const settledAtStr = new Date(settledAtTs).toLocaleString('ar-EG');
+            const settledBatchId = 'settle_' + settledAtTs;
             const updates = {};
 
             targets.forEach(d => {
                 if (d._key) {
                     updates[`${d._key}/settled`] = true;
                     updates[`${d._key}/settledDate`] = settledAtStr;
+                    updates[`${d._key}/settledTimestamp`] = settledAtTs;
                     updates[`${d._key}/settledBatch`] = settledBatchId;
-                    updates[`${d._key}/updatedAt`] = Date.now();
+                    updates[`${d._key}/updatedAt`] = settledAtTs;
                 }
             });
 
             try {
                 await database.ref(DEVICES_PATH).update(updates);
                 await pushLog(`تصفية شغل (${targets.length} جهاز) 🧹`, {
-                    ownerName: `تصفية (${targets.length} جهاز)`,
+                    ownerName: `تصفية مستقلة (${targets.length} جهاز)`,
                     ownerPhone: '',
-                    deviceModel: `إجمالي الصافي: ${netSum.toLocaleString()} ج.م`,
+                    deviceModel: `صافي التصفية: ${netSum.toLocaleString()} ج.م`,
                     parts: [],
                     repairCost: netSum,
                     totalAmount: netSum
                 }, '');
-                document.getElementById('settledWorkBox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.getElementById('settledBatchesContainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch (err) {
                 alert("❌ تعذر إتمام التصفية: " + err.message);
             }
@@ -1119,8 +1076,8 @@
 
         function renderRepairedTable() {
             const tbody = document.getElementById('repairedTableBody');
-            const settledTbody = document.getElementById('settledTableBody');
-            if (!tbody || !settledTbody) return;
+            const batchesContainer = document.getElementById('settledBatchesContainer');
+            if (!tbody || !batchesContainer) return;
 
             const q = (document.getElementById('repairedSearchInput')?.value || '').toLowerCase().trim();
 
@@ -1166,31 +1123,105 @@
                 tbody.innerHTML = activeList.map(buildDeviceRowHTML).join('');
             }
 
-            let settledNetSum = 0;
-            let settledRepairSum = 0;
-            let settledPartsSum = 0;
-
+            // تجميع كل عملية تصفية في مربع مستقل بذاته بنفس الترتيب
+            const batchesMap = {};
             settledList.forEach(d => {
-                const t = calcDeviceTotals(d);
-                settledNetSum += t.netRepair;
-                settledRepairSum += t.totalAmount;
-                settledPartsSum += t.partsTotal;
+                const bId = d.settledBatch || 'batch_default';
+                if (!batchesMap[bId]) {
+                    batchesMap[bId] = {
+                        batchId: bId,
+                        settledDate: d.settledDate || '',
+                        settledTs: d.settledTimestamp || d.timestamp || 0,
+                        items: []
+                    };
+                }
+                batchesMap[bId].items.push(d);
+                if ((d.settledTimestamp || 0) > batchesMap[bId].settledTs) {
+                    batchesMap[bId].settledTs = d.settledTimestamp || 0;
+                }
             });
 
-            if (settledList.length === 0) {
-                settledTbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-bold text-sm">لم يتم تصفية شغل بعد — اضغط «تصفية الشغل» لنقل الأجهزة إلى هذا المربع</td></tr>`;
-            } else {
-                settledTbody.innerHTML = settledList.map(buildDeviceRowHTML).join('');
+            const orderedBatches = Object.values(batchesMap).sort((a, b) => b.settledTs - a.settledTs);
+
+            if (orderedBatches.length === 0) {
+                batchesContainer.innerHTML = `
+                    <div class="settled-batch-card rounded-[35px] overflow-hidden">
+                        <div class="p-5 bg-gradient-to-l from-sky-700 to-slate-800 text-white flex justify-between items-center">
+                            <span class="font-black text-base">📦 الشغل المُصفّى</span>
+                            <span class="text-xs font-mono text-sky-200">0 تصفية</span>
+                        </div>
+                        <div class="p-8 text-center text-slate-400 font-bold text-sm bg-white">
+                            لم يتم تصفية شغل بعد — اضغط «تصفية الشغل» لإنشاء مربع تصفية مستقل بحسابه الخاص
+                        </div>
+                    </div>
+                `;
+                return;
             }
 
-            document.getElementById('settledCountBadge').innerText = `${settledList.length} جهاز`;
-            document.getElementById('settledDevicesSummary').innerText = settledList.length.toLocaleString();
-            document.getElementById('settledRepairSummary').innerText = settledRepairSum.toLocaleString();
-            document.getElementById('settledPartsSummary').innerText = settledPartsSum.toLocaleString();
-            document.getElementById('settledNetTotalDisplay').innerText = settledNetSum.toLocaleString() + " ج.م";
+            const totalBatchesCount = orderedBatches.length;
+            batchesContainer.innerHTML = orderedBatches.map((batch, idx) => {
+                const batchNumber = totalBatchesCount - idx;
+                let bNet = 0;
+                let bRepair = 0;
+                let bParts = 0;
 
-            const latestSettled = settledList.find(d => d.settledDate);
-            document.getElementById('lastSettledDateLabel').innerText = latestSettled ? `آخر تصفية: ${latestSettled.settledDate}` : '';
+                batch.items.forEach(d => {
+                    const t = calcDeviceTotals(d);
+                    bNet += t.netRepair;
+                    bRepair += t.totalAmount;
+                    bParts += t.partsTotal;
+                });
+
+                return `
+                    <div class="settled-batch-card rounded-[35px] overflow-hidden">
+                        <div class="p-5 bg-gradient-to-l from-sky-700 to-slate-800 text-white flex flex-wrap justify-between items-center gap-2">
+                            <div class="font-black text-base flex items-center gap-2">
+                                <span>📦 تصفية #${batchNumber}</span>
+                                <span class="bg-white/20 text-white text-xs px-3 py-0.5 rounded-full font-mono">${batch.items.length} جهاز</span>
+                            </div>
+                            <span class="text-xs font-mono text-sky-200" dir="ltr">${escapeHtml(batch.settledDate || '')}</span>
+                        </div>
+
+                        <div class="overflow-x-auto bg-white">
+                            <table class="w-full text-right border-collapse">
+                                <thead>
+                                    <tr class="bg-sky-50 text-sky-950 text-xs uppercase font-black border-b border-sky-100">
+                                        <th class="p-4 text-right">صاحب الجهاز والموبايل</th>
+                                        <th class="p-4 text-right">الجهاز والعطل</th>
+                                        <th class="p-4 text-center">تكلفة الصيانة</th>
+                                        <th class="p-4 text-right">القطع المستخدمة وأسعارها</th>
+                                        <th class="p-4 text-center">صافي التكلفة</th>
+                                        <th class="p-4 text-center">التاريخ والوقت</th>
+                                        <th class="p-4 text-center">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${batch.items.map(buildDeviceRowHTML).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-5 bg-gradient-to-l from-amber-50 via-white to-emerald-50 border-t-2 border-sky-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div class="flex flex-wrap items-center gap-3 text-xs font-black">
+                                <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
+                                    أجهزة التصفية: <span class="font-mono text-sky-700 text-sm">${batch.items.length.toLocaleString()}</span>
+                                </span>
+                                <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
+                                    الصيانة: <span class="font-mono text-emerald-700 text-sm">${bRepair.toLocaleString()}</span> ج.م
+                                </span>
+                                <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
+                                    القطع: <span class="font-mono text-indigo-700 text-sm">${bParts.toLocaleString()}</span> ج.م
+                                </span>
+                            </div>
+
+                            <div class="bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-lg border-r-4 border-amber-400 flex items-center gap-3">
+                                <span class="text-xs font-bold text-amber-300">إجمالي الصافي:</span>
+                                <span class="text-2xl font-black font-mono text-amber-400">${bNet.toLocaleString()} ج.م</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderActivityFeed() {
@@ -1231,7 +1262,7 @@
 
                 const clickAttr = linkedDev
                     ? `onclick="openRepairedDetailsModal('${escapeJsStr(log.deviceKey)}')"`
-                    : `onclick="alert('هذا السجل تم حذفه أو يرتبط بجهاز نشط.')"`;
+                    : `onclick="alert('هذا السجل تم حذفه أو لا يرتبط بجهاز نشط.')"`;
 
                 html += `
                     <div ${clickAttr} class="activity-card p-3 rounded-2xl border border-slate-200 shadow-sm ${borderCls}">
@@ -1264,7 +1295,7 @@
                 return;
             }
 
-            const headers = ["الحالة", "اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "تكلفة الصيانة", "القطع وأسعارها", "إجمالي القطع", "صافي التكلفة", "التاريخ والوقت"];
+            const headers = ["الحالة", "رقم التصفية", "اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "تكلفة الصيانة", "القطع وأسعارها", "إجمالي القطع", "صافي التكلفة", "التاريخ والوقت"];
             const csvLines = [headers.join(',')];
 
             rows.forEach(d => {
@@ -1274,6 +1305,7 @@
                     : '';
                 const line = [
                     d.settled ? "مُصفّى" : "نشط",
+                    d.settledBatch || "",
                     d.ownerName || '',
                     d.ownerPhone || '',
                     d.deviceModel || '',
