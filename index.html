@@ -24,6 +24,7 @@
         .activity-card:hover { transform: scale(1.02); background-color: #f8fafc; }
         .device-row-card:hover { background-color: #f1f5f9; }
         .selectable { user-select: text !important; }
+        .settled-box { border: 2px solid #0ea5e9; background: #ffffff; box-shadow: 0 10px 28px rgba(14, 165, 233, 0.08); }
     </style>
 </head>
 <body class="text-slate-800 relative bg-slate-50">
@@ -145,7 +146,7 @@
             </div>
         </div>
 
-        <!-- المحتوى السفلي: شريط آخر 100 حركة على اليمين + الجدول -->
+        <!-- المحتوى السفلي: شريط آخر 100 حركة على اليمين + الجداول -->
         <div class="flex flex-col lg:flex-row gap-6">
 
             <!-- شريط آخر 100 حركة في الجنب اليمين -->
@@ -158,16 +159,24 @@
                 </div>
             </div>
 
-            <!-- جدول الأجهزة التي تم إصلاحها -->
-            <div class="flex-1 min-w-0">
+            <!-- عمود الجداول والمربع المُصفّى -->
+            <div class="flex-1 min-w-0 space-y-6">
+
+                <!-- جدول الأجهزة النشطة التي تم إصلاحها -->
                 <div class="bg-white rounded-[35px] shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-5 bg-slate-50 border-b flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="relative w-full sm:w-[28rem] flex items-center">
+                    <div class="p-5 bg-slate-50 border-b flex flex-wrap justify-between items-center gap-3">
+                        <div class="relative w-full sm:w-[26rem] flex items-center">
                             <input type="text" id="repairedSearchInput" oninput="renderRepairedTable()" placeholder="🔍 ابحث بالاسم، الرقم، الجهاز، القطعة، السعر، أو التاريخ..." class="w-full p-4 pl-10 border rounded-2xl outline-none shadow-sm font-bold text-sm selectable focus:ring-2 focus:ring-orange-500">
                             <button type="button" onclick="document.getElementById('repairedSearchInput').value=''; renderRepairedTable();" class="absolute left-2 text-slate-400 hover:text-red-500 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full transition">&times;</button>
                         </div>
-                        <div id="filteredStatsBadge" class="text-xs font-black text-slate-600 bg-white px-4 py-2.5 rounded-2xl border border-slate-200">
-                            عرض: 0 سجل
+
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <div id="filteredStatsBadge" class="text-xs font-black text-slate-600 bg-white px-4 py-2.5 rounded-2xl border border-slate-200">
+                                عرض: 0 سجل
+                            </div>
+                            <button type="button" onclick="settleCurrentRepairedWork()" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-2xl text-xs font-black transition shadow-lg border-b-4 border-orange-800 active:border-b-0 active:translate-y-1">
+                                🧹 تصفية الشغل
+                            </button>
                         </div>
                     </div>
 
@@ -188,6 +197,55 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- مربع الشغل المُصفّى بنفس الترتيب + إجمالي الصافي أسفله -->
+                <div id="settledWorkBox" class="settled-box rounded-[35px] overflow-hidden">
+                    <div class="p-5 bg-gradient-to-l from-sky-700 to-slate-800 text-white flex flex-wrap justify-between items-center gap-2">
+                        <div class="font-black text-base flex items-center gap-2">
+                            <span>📦 الشغل المُصفّى</span>
+                            <span id="settledCountBadge" class="bg-white/20 text-white text-xs px-3 py-0.5 rounded-full font-mono">0 جهاز</span>
+                        </div>
+                        <span id="lastSettledDateLabel" class="text-xs font-mono text-sky-200"></span>
+                    </div>
+
+                    <div class="overflow-x-auto bg-white">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-sky-50 text-sky-950 text-xs uppercase font-black border-b border-sky-100">
+                                    <th class="p-4 text-right">صاحب الجهاز والموبايل</th>
+                                    <th class="p-4 text-right">الجهاز والعطل</th>
+                                    <th class="p-4 text-center">تكلفة الصيانة</th>
+                                    <th class="p-4 text-right">القطع المستخدمة وأسعارها</th>
+                                    <th class="p-4 text-center">صافي التكلفة</th>
+                                    <th class="p-4 text-center">التاريخ والوقت</th>
+                                    <th class="p-4 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="settledTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- شريط إجمالي الصافي أسفل المربع بشكل أنيق -->
+                    <div class="p-5 bg-gradient-to-l from-amber-50 via-white to-emerald-50 border-t-2 border-sky-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-3 text-xs font-black">
+                            <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
+                                عدد الأجهزة المُصفّاة: <span id="settledDevicesSummary" class="font-mono text-sky-700 text-sm">0</span>
+                            </span>
+                            <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
+                                إجمالي الصيانة: <span id="settledRepairSummary" class="font-mono text-emerald-700 text-sm">0</span> ج.م
+                            </span>
+                            <span class="bg-white border border-slate-200 px-4 py-2 rounded-2xl text-slate-700 shadow-sm">
+                                إجمالي القطع: <span id="settledPartsSummary" class="font-mono text-indigo-700 text-sm">0</span> ج.م
+                            </span>
+                        </div>
+
+                        <div class="bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-lg border-r-4 border-amber-400 flex items-center gap-3">
+                            <span class="text-xs font-bold text-amber-300">إجمالي الصافي:</span>
+                            <span id="settledNetTotalDisplay" class="text-2xl font-black font-mono text-amber-400">0 ج.م</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -726,6 +784,7 @@
                 date: nowStr,
                 timestamp,
                 updatedAt: timestamp,
+                settled: false,
                 deleted: false
             };
 
@@ -743,6 +802,51 @@
                 updateFormPreview();
             } catch (err) {
                 alert("❌ تعذر الحفظ أونلاين: " + err.message);
+            }
+        }
+
+        async function settleCurrentRepairedWork() {
+            const targets = repairedDevices.filter(d => d && !d.deleted && !d.settled);
+            if (targets.length === 0) {
+                alert("لا يوجد شغل نشط لتصفيته حالياً.");
+                return;
+            }
+
+            let netSum = 0;
+            targets.forEach(d => {
+                netSum += calcDeviceTotals(d).netRepair;
+            });
+
+            if (!confirm(`تأكيد تصفية (${targets.length}) جهاز بإجمالي صافي (${netSum.toLocaleString()} ج.م) ونقلها إلى مربع الشغل المُصفّى؟`)) {
+                return;
+            }
+
+            const settledAtStr = new Date().toLocaleString('ar-EG');
+            const settledBatchId = 'settle_' + Date.now();
+            const updates = {};
+
+            targets.forEach(d => {
+                if (d._key) {
+                    updates[`${d._key}/settled`] = true;
+                    updates[`${d._key}/settledDate`] = settledAtStr;
+                    updates[`${d._key}/settledBatch`] = settledBatchId;
+                    updates[`${d._key}/updatedAt`] = Date.now();
+                }
+            });
+
+            try {
+                await database.ref(DEVICES_PATH).update(updates);
+                await pushLog(`تصفية شغل (${targets.length} جهاز) 🧹`, {
+                    ownerName: `تصفية (${targets.length} جهاز)`,
+                    ownerPhone: '',
+                    deviceModel: `إجمالي الصافي: ${netSum.toLocaleString()} ج.م`,
+                    parts: [],
+                    repairCost: netSum,
+                    totalAmount: netSum
+                }, '');
+                document.getElementById('settledWorkBox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (err) {
+                alert("❌ تعذر إتمام التصفية: " + err.message);
             }
         }
 
@@ -971,23 +1075,73 @@
             }
         }
 
+        function buildDeviceRowHTML(dev) {
+            const { partsTotal, netRepair, totalAmount } = calcDeviceTotals(dev);
+            const partsHtml = (Array.isArray(dev.parts) && dev.parts.length > 0)
+                ? dev.parts.map(p => `<div class="flex justify-between items-center gap-2 bg-indigo-50/70 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs mb-1"><span class="font-bold text-slate-700">${escapeHtml(p.name)}</span><span class="font-mono font-black text-indigo-700">-${(parseFloat(p.price) || 0).toLocaleString()} ج</span></div>`).join('') +
+                  `<div class="text-[10px] font-mono font-bold text-indigo-600 mt-1">مجموع القطع: ${partsTotal.toLocaleString()} ج</div>`
+                : `<span class="text-xs text-slate-400 font-bold">لا توجد قطع (0 ج)</span>`;
+
+            const safeKey = escapeJsStr(dev._key);
+
+            return `
+                <tr onclick="openRepairedDetailsModal('${safeKey}')" class="device-row-card transition align-top">
+                    <td class="p-4 text-right">
+                        <div class="font-black text-slate-800 text-sm selectable underline decoration-slate-300">${escapeHtml(dev.ownerName)}</div>
+                        <div class="text-xs text-slate-500 font-mono mt-1 selectable" dir="ltr">${escapeHtml(dev.ownerPhone || 'بدون رقم')}</div>
+                    </td>
+                    <td class="p-4 text-right">
+                        <div class="font-black text-slate-800 text-sm selectable">📱 ${escapeHtml(dev.deviceModel)}</div>
+                        <div class="text-xs text-slate-500 mt-1 selectable">${escapeHtml(dev.issueDesc || 'تم الإصلاح')}</div>
+                    </td>
+                    <td class="p-4 text-center font-mono font-black text-emerald-700 text-base">
+                        ${totalAmount.toLocaleString()} ج.م
+                    </td>
+                    <td class="p-4 text-right min-w-[190px]">
+                        ${partsHtml}
+                    </td>
+                    <td class="p-4 text-center font-mono font-black ${netRepair < 0 ? 'text-red-600' : 'text-amber-700'} text-base">
+                        ${netRepair.toLocaleString()} ج.م
+                    </td>
+                    <td class="p-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap" dir="ltr">
+                        ${escapeHtml(dev.date || '')}
+                    </td>
+                    <td onclick="event.stopPropagation()" class="p-4 text-center whitespace-nowrap">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button type="button" onclick="openRepairedDetailsModal('${safeKey}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-xl text-xs font-bold transition">📋 تفاصيل</button>
+                            <button type="button" onclick="openEditRepairedModal('${safeKey}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">✏️ تعديل</button>
+                            <button type="button" onclick="deleteRepairedDevice('${safeKey}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">🗑️ حذف</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
         function renderRepairedTable() {
             const tbody = document.getElementById('repairedTableBody');
-            if (!tbody) return;
+            const settledTbody = document.getElementById('settledTableBody');
+            if (!tbody || !settledTbody) return;
 
             const q = (document.getElementById('repairedSearchInput')?.value || '').toLowerCase().trim();
 
+            const matchesSearch = (d) => {
+                if (!q) return true;
+                const partsText = Array.isArray(d.parts)
+                    ? d.parts.map(p => `${p.name || ''} ${p.price || ''}`).join(' ')
+                    : '';
+                const hay = `${d.ownerName || ''} ${d.ownerPhone || ''} ${d.deviceModel || ''} ${d.issueDesc || ''} ${d.repairCost || ''} ${d.netRepair || ''} ${d.totalAmount || ''} ${d.date || ''} ${partsText}`.toLowerCase();
+                return hay.includes(q);
+            };
+
+            const sortFn = (a, b) => (b.timestamp || 0) - (a.timestamp || 0);
+
             const activeList = repairedDevices
-                .filter(d => d && !d.deleted)
-                .filter(d => {
-                    if (!q) return true;
-                    const partsText = Array.isArray(d.parts)
-                        ? d.parts.map(p => `${p.name || ''} ${p.price || ''}`).join(' ')
-                        : '';
-                    const hay = `${d.ownerName || ''} ${d.ownerPhone || ''} ${d.deviceModel || ''} ${d.issueDesc || ''} ${d.repairCost || ''} ${d.netRepair || ''} ${d.totalAmount || ''} ${d.date || ''} ${partsText}`.toLowerCase();
-                    return hay.includes(q);
-                })
-                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                .filter(d => d && !d.deleted && !d.settled && matchesSearch(d))
+                .sort(sortFn);
+
+            const settledList = repairedDevices
+                .filter(d => d && !d.deleted && !!d.settled && matchesSearch(d))
+                .sort(sortFn);
 
             let grandNetRepair = 0;
             let grandPartsCost = 0;
@@ -1007,54 +1161,36 @@
             document.getElementById('filteredStatsBadge').innerText = `عرض: ${activeList.length} سجل | صيانة: ${grandTotal.toLocaleString()} ج | قطع: ${grandPartsCost.toLocaleString()} ج | صافي: ${grandNetRepair.toLocaleString()} ج`;
 
             if (activeList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400 font-bold">لا توجد أجهزة مُصلَّحة مطابقة للبحث حالياً</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400 font-bold">لا توجد أجهزة نشطة مطابقة حالياً</td></tr>`;
+            } else {
+                tbody.innerHTML = activeList.map(buildDeviceRowHTML).join('');
             }
 
-            let html = '';
-            activeList.forEach(dev => {
-                const { partsTotal, netRepair, totalAmount } = calcDeviceTotals(dev);
-                const partsHtml = (Array.isArray(dev.parts) && dev.parts.length > 0)
-                    ? dev.parts.map(p => `<div class="flex justify-between items-center gap-2 bg-indigo-50/70 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs mb-1"><span class="font-bold text-slate-700">${escapeHtml(p.name)}</span><span class="font-mono font-black text-indigo-700">-${(parseFloat(p.price) || 0).toLocaleString()} ج</span></div>`).join('') +
-                      `<div class="text-[10px] font-mono font-bold text-indigo-600 mt-1">مجموع القطع: ${partsTotal.toLocaleString()} ج</div>`
-                    : `<span class="text-xs text-slate-400 font-bold">لا توجد قطع (0 ج)</span>`;
+            let settledNetSum = 0;
+            let settledRepairSum = 0;
+            let settledPartsSum = 0;
 
-                const safeKey = escapeJsStr(dev._key);
-
-                html += `
-                    <tr onclick="openRepairedDetailsModal('${safeKey}')" class="device-row-card transition align-top">
-                        <td class="p-4 text-right">
-                            <div class="font-black text-slate-800 text-sm selectable underline decoration-slate-300">${escapeHtml(dev.ownerName)}</div>
-                            <div class="text-xs text-slate-500 font-mono mt-1 selectable" dir="ltr">${escapeHtml(dev.ownerPhone || 'بدون رقم')}</div>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="font-black text-slate-800 text-sm selectable">📱 ${escapeHtml(dev.deviceModel)}</div>
-                            <div class="text-xs text-slate-500 mt-1 selectable">${escapeHtml(dev.issueDesc || 'تم الإصلاح')}</div>
-                        </td>
-                        <td class="p-4 text-center font-mono font-black text-emerald-700 text-base">
-                            ${totalAmount.toLocaleString()} ج.م
-                        </td>
-                        <td class="p-4 text-right min-w-[190px]">
-                            ${partsHtml}
-                        </td>
-                        <td class="p-4 text-center font-mono font-black ${netRepair < 0 ? 'text-red-600' : 'text-amber-700'} text-base">
-                            ${netRepair.toLocaleString()} ج.م
-                        </td>
-                        <td class="p-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap" dir="ltr">
-                            ${escapeHtml(dev.date || '')}
-                        </td>
-                        <td onclick="event.stopPropagation()" class="p-4 text-center whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <button type="button" onclick="openRepairedDetailsModal('${safeKey}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-xl text-xs font-bold transition">📋 تفاصيل</button>
-                                <button type="button" onclick="openEditRepairedModal('${safeKey}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">✏️ تعديل</button>
-                                <button type="button" onclick="deleteRepairedDevice('${safeKey}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">🗑️ حذف</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+            settledList.forEach(d => {
+                const t = calcDeviceTotals(d);
+                settledNetSum += t.netRepair;
+                settledRepairSum += t.totalAmount;
+                settledPartsSum += t.partsTotal;
             });
 
-            tbody.innerHTML = html;
+            if (settledList.length === 0) {
+                settledTbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-bold text-sm">لم يتم تصفية شغل بعد — اضغط «تصفية الشغل» لنقل الأجهزة إلى هذا المربع</td></tr>`;
+            } else {
+                settledTbody.innerHTML = settledList.map(buildDeviceRowHTML).join('');
+            }
+
+            document.getElementById('settledCountBadge').innerText = `${settledList.length} جهاز`;
+            document.getElementById('settledDevicesSummary').innerText = settledList.length.toLocaleString();
+            document.getElementById('settledRepairSummary').innerText = settledRepairSum.toLocaleString();
+            document.getElementById('settledPartsSummary').innerText = settledPartsSum.toLocaleString();
+            document.getElementById('settledNetTotalDisplay').innerText = settledNetSum.toLocaleString() + " ج.م";
+
+            const latestSettled = settledList.find(d => d.settledDate);
+            document.getElementById('lastSettledDateLabel').innerText = latestSettled ? `آخر تصفية: ${latestSettled.settledDate}` : '';
         }
 
         function renderActivityFeed() {
@@ -1082,6 +1218,9 @@
                 } else if (String(log.action).includes('حذف')) {
                     borderCls = 'border-r-4 border-red-500 bg-red-50/40';
                     badgeCls = 'text-red-700 bg-red-100';
+                } else if (String(log.action).includes('تصفية')) {
+                    borderCls = 'border-r-4 border-sky-500 bg-sky-50/40';
+                    badgeCls = 'text-sky-700 bg-sky-100';
                 }
 
                 const linkedDev = log.deviceKey ? repairedDevices.find(d => d && d._key === log.deviceKey && !d.deleted) : null;
@@ -1092,7 +1231,7 @@
 
                 const clickAttr = linkedDev
                     ? `onclick="openRepairedDetailsModal('${escapeJsStr(log.deviceKey)}')"`
-                    : `onclick="alert('هذا السجل تم حذفه أو لا يرتبط بجهاز نشط.')"`;
+                    : `onclick="alert('هذا السجل تم حذفه أو يرتبط بجهاز نشط.')"`;
 
                 html += `
                     <div ${clickAttr} class="activity-card p-3 rounded-2xl border border-slate-200 shadow-sm ${borderCls}">
@@ -1125,7 +1264,7 @@
                 return;
             }
 
-            const headers = ["اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "تكلفة الصيانة", "القطع وأسعارها", "إجمالي القطع", "صافي التكلفة", "التاريخ والوقت"];
+            const headers = ["الحالة", "اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "تكلفة الصيانة", "القطع وأسعارها", "إجمالي القطع", "صافي التكلفة", "التاريخ والوقت"];
             const csvLines = [headers.join(',')];
 
             rows.forEach(d => {
@@ -1134,6 +1273,7 @@
                     ? d.parts.map(p => `${p.name} (${p.price})`).join(' | ')
                     : '';
                 const line = [
+                    d.settled ? "مُصفّى" : "نشط",
                     d.ownerName || '',
                     d.ownerPhone || '',
                     d.deviceModel || '',
