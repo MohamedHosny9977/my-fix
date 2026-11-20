@@ -78,12 +78,12 @@
                     <div id="totalDevicesCount" class="text-lg font-black font-mono text-sky-400">0</div>
                 </div>
                 <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">إجمالي الصيانة</div>
-                    <div id="totalRepairCostSummary" class="text-lg font-black font-mono text-amber-400">0 ج.م</div>
-                </div>
-                <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
                     <div class="text-[10px] text-slate-400 font-bold">إجمالي القطع</div>
                     <div id="totalPartsCostSummary" class="text-lg font-black font-mono text-indigo-400">0 ج.م</div>
+                </div>
+                <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">صافي الصيانة</div>
+                    <div id="totalNetProfitSummary" class="text-lg font-black font-mono text-amber-400">0 ج.م</div>
                 </div>
                 <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-center">
                     <div class="text-[10px] text-slate-400 font-bold">الإجمالي الكلي</div>
@@ -99,7 +99,7 @@
         <div class="bg-white p-6 rounded-[30px] shadow-sm mb-6 border border-slate-200">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 class="text-lg font-black text-slate-800">➕ تسجيل جهاز تم إصلاحه</h2>
-                <span class="text-xs font-bold text-slate-400">التاريخ والوقت يُسجَّلان تلقائياً ويمكن تعديلهما لاحقاً</span>
+                <span class="text-xs font-bold text-slate-400">أدخل السعر الكلي للعميل، وسيتم خصم سعر القطع تلقائياً لحساب صافي الصيانة</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-4">
@@ -116,19 +116,19 @@
                     <input type="text" id="rDeviceModel" list="repDevicesList" placeholder="مثال: Redmi Note 12" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-bold selectable">
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-amber-700 mb-1.5">تكلفة الصيانة (ج.م)</label>
-                    <input type="number" id="rRepairCost" min="0" step="any" placeholder="0" oninput="updateFormPreview()" class="w-full p-3 border-2 border-amber-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50/40 font-mono font-black text-amber-800 selectable">
+                    <label class="block text-xs font-black text-emerald-700 mb-1.5">السعر الكلي للعميل (ج.م)</label>
+                    <input type="number" id="rTotalPrice" min="0" step="any" placeholder="0" oninput="updateFormPreview()" class="w-full p-3 border-2 border-emerald-300 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 font-mono font-black text-emerald-800 selectable">
                 </div>
                 <div>
                     <label class="block text-xs font-black text-slate-600 mb-1.5">العطل / تفاصيل الإصلاح</label>
-                    <input type="text" id="rIssueDesc" placeholder="مثال: تغيير شاشة / فاصل باور" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 selectable">
+                    <input type="text" id="rIssueDesc" placeholder="مثال: تغيير سوكت شاشة" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 selectable">
                 </div>
             </div>
 
             <!-- القطع المستخدمة وأسعارها -->
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4">
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-                    <span class="text-xs font-black text-slate-700">🧩 القطع المستخدمة وسعر كل قطعة:</span>
+                    <span class="text-xs font-black text-slate-700">🧩 قطع الغيار المستخدمة (تُخصم تلقائياً من السعر الكلي):</span>
                     <button type="button" onclick="addPartRow('add')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">+ إضافة قطعة أخرى</button>
                 </div>
                 <div id="addPartsContainer" class="space-y-2.5"></div>
@@ -137,9 +137,9 @@
             <!-- ملخص التكلفة وزر الحفظ -->
             <div class="flex flex-col lg:flex-row justify-between items-center gap-4 pt-3 border-t border-slate-100">
                 <div class="flex flex-wrap gap-3 text-xs font-black">
-                    <span class="bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-xl text-indigo-800">سعر القطع: <span id="previewPartsSum" class="font-mono text-sm">0</span> ج.م</span>
-                    <span class="bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl text-amber-800">تكلفة الصيانة: <span id="previewRepairCost" class="font-mono text-sm">0</span> ج.م</span>
-                    <span class="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl text-emerald-800 text-sm">الإجمالي الكلي: <span id="previewGrandTotal" class="font-mono text-base">0</span> ج.م</span>
+                    <span class="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl text-emerald-800">السعر الكلي: <span id="previewGrandTotal" class="font-mono text-sm">0</span> ج.م</span>
+                    <span class="bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-xl text-indigo-800">خصم القطع: <span id="previewPartsSum" class="font-mono text-sm">0</span> ج.م</span>
+                    <span class="bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl text-amber-800 text-sm">صافي الصيانة: <span id="previewNetRepair" class="font-mono text-base">0</span> ج.م</span>
                 </div>
                 <button type="button" onclick="saveRepairedDevice()" class="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg transition active:scale-95">💾 حفظ الجهاز في السجل</button>
             </div>
@@ -178,7 +178,7 @@
                                     <th class="p-4 text-right">صاحب الجهاز والموبايل</th>
                                     <th class="p-4 text-right">الجهاز والعطل</th>
                                     <th class="p-4 text-right">القطع المستخدمة وأسعارها</th>
-                                    <th class="p-4 text-center">تكلفة الصيانة</th>
+                                    <th class="p-4 text-center">صافي الصيانة</th>
                                     <th class="p-4 text-center">الإجمالي الكلي</th>
                                     <th class="p-4 text-center">التاريخ والوقت</th>
                                     <th class="p-4 text-center">إجراءات</th>
@@ -238,8 +238,8 @@
                         <input type="text" id="editRDeviceModel" list="repDevicesList" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-bold selectable">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-amber-700 mb-1">تكلفة الصيانة (ج.م)</label>
-                        <input type="number" id="editRRepairCost" min="0" step="any" oninput="updateEditPreview()" class="w-full p-3 border-2 border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50/40 font-mono font-black text-amber-800 selectable">
+                        <label class="block text-xs font-bold text-emerald-700 mb-1">السعر الكلي للعميل (ج.م)</label>
+                        <input type="number" id="editRTotalPrice" min="0" step="any" oninput="updateEditPreview()" class="w-full p-3 border-2 border-emerald-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 font-mono font-black text-emerald-800 selectable">
                     </div>
                 </div>
 
@@ -256,15 +256,15 @@
 
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-black text-slate-700">🧩 القطع المستخدمة وأسعارها:</span>
+                        <span class="text-xs font-black text-slate-700">🧩 قطع الغيار المستخدمة (تُخصم من السعر الكلي):</span>
                         <button type="button" onclick="addPartRow('edit')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-xl text-xs font-bold">+ إضافة قطعة</button>
                     </div>
                     <div id="editPartsContainer" class="space-y-2"></div>
                 </div>
 
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 flex flex-wrap justify-between items-center gap-2 text-xs font-black">
-                    <span>القطع: <span id="editPreviewPartsSum" class="font-mono text-indigo-700">0</span> ج.م | الصيانة: <span id="editPreviewRepairCost" class="font-mono text-amber-700">0</span> ج.م</span>
-                    <span class="text-sm text-blue-900">الإجمالي: <span id="editPreviewGrandTotal" class="font-mono text-base">0</span> ج.م</span>
+                <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100 flex flex-wrap justify-between items-center gap-2 text-xs font-black">
+                    <span>الإجمالي: <span id="editPreviewGrandTotal" class="font-mono text-emerald-700">0</span> ج.م | القطع: <span id="editPreviewPartsSum" class="font-mono text-indigo-700">0</span> ج.م</span>
+                    <span class="text-sm text-amber-800">صافي الصيانة: <span id="editPreviewNetRepair" class="font-mono text-base">0</span> ج.م</span>
                 </div>
             </div>
 
@@ -316,12 +316,28 @@
             return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         }
 
+        // المعادلة المحدثة: السعر الكلي للعميل ثابت، والقطع تُخصم منه لتعطي صافي الصيانة
         function calcDeviceTotals(dev) {
             const parts = Array.isArray(dev?.parts) ? dev.parts : [];
             const partsTotal = parts.reduce((sum, p) => sum + (parseFloat(p?.price) || 0), 0);
-            const repairCost = parseFloat(dev?.repairCost) || 0;
-            const totalAmount = partsTotal + repairCost;
-            return { partsTotal, repairCost, totalAmount };
+
+            // دعم السجلات القديمة والجديدة:
+            // في السجلات الجديدة نحفظ totalAmount (السعر الكلي للعميل) ونحسب netRepair = totalAmount - partsTotal
+            let totalAmount = 0;
+            if (dev?.pricingMode === 'deduct_parts') {
+                totalAmount = parseFloat(dev?.totalAmount) || 0;
+            } else if (dev?.totalAmount !== undefined && dev?.totalAmount !== null) {
+                // إذا كان السجل القديم محفوظاً قبل التعديل وكان totalAmount يساوي (partsTotal + repairCost)،
+                // نأخذ السعر الأساسي الذي أدخله المستخدم (repairCost إذا كان totalAmount كان مجموعهما، وإلا totalAmount)
+                const oldRepair = parseFloat(dev?.repairCost) || 0;
+                const oldTotal = parseFloat(dev?.totalAmount) || 0;
+                totalAmount = (oldTotal === oldRepair + partsTotal && oldRepair > 0) ? oldRepair : oldTotal;
+            } else {
+                totalAmount = parseFloat(dev?.repairCost) || 0;
+            }
+
+            const netRepair = totalAmount - partsTotal;
+            return { partsTotal, netRepair, totalAmount };
         }
 
         function updateSyncStatus(color, text) {
@@ -528,7 +544,8 @@
                 if (!repairedLogs.some(l => l._key === snap.key)) {
                     repairedLogs.push(log);
                     if (!isInitialLogsLoad) {
-                        const msg = `${log.ownerName || ''} - ${log.deviceModel || ''} | صيانة: ${(parseFloat(log.repairCost) || 0).toLocaleString()} ج | إجمالي: ${(parseFloat(log.totalAmount) || 0).toLocaleString()} ج`;
+                        const netVal = log.netRepair !== undefined ? log.netRepair : log.repairCost;
+                        const msg = `${log.ownerName || ''} - ${log.deviceModel || ''} | صافي: ${(parseFloat(netVal) || 0).toLocaleString()} ج | إجمالي: ${(parseFloat(log.totalAmount) || 0).toLocaleString()} ج`;
                         triggerLiveAlert(log.action || 'حركة جديدة', msg, log.date);
                     }
                 }
@@ -600,8 +617,8 @@
             const onChangeFn = mode === 'add' ? 'updateFormPreview()' : 'updateEditPreview()';
 
             row.innerHTML = `
-                <input type="text" list="repPartsList" value="${escapeHtml(partName)}" oninput="${onChangeFn}" placeholder="اسم القطعة المستخدمة (مثال: شاشة، سوكت، بطارية)" class="part-name sm:col-span-7 p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm font-bold selectable">
-                <input type="number" min="0" step="any" value="${partPrice !== '' ? escapeHtml(partPrice) : ''}" oninput="${onChangeFn}" placeholder="سعر القطعة (ج.م)" class="part-price sm:col-span-3 p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm font-mono font-bold selectable">
+                <input type="text" list="repPartsList" value="${escapeHtml(partName)}" oninput="${onChangeFn}" placeholder="اسم القطعة المستخدمة (مثال: سوكت شاشة، بطارية)" class="part-name sm:col-span-7 p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm font-bold selectable">
+                <input type="number" min="0" step="any" value="${partPrice !== '' ? escapeHtml(partPrice) : ''}" oninput="${onChangeFn}" placeholder="سعر القطعة (يُخصم)" class="part-price sm:col-span-3 p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm font-mono font-bold selectable">
                 <button type="button" onclick="removePartRow(this, '${mode}')" class="sm:col-span-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-3 rounded-xl text-xs transition border border-red-200">حذف</button>
             `;
             container.appendChild(row);
@@ -638,23 +655,27 @@
         function updateFormPreview() {
             const parts = collectPartsFromContainer('addPartsContainer');
             const partsSum = parts.reduce((acc, p) => acc + (parseFloat(p.price) || 0), 0);
-            const repairCost = parseFloat(document.getElementById('rRepairCost').value) || 0;
-            const total = partsSum + repairCost;
+            const totalPrice = parseFloat(document.getElementById('rTotalPrice').value) || 0;
+            const netRepair = totalPrice - partsSum;
 
+            document.getElementById('previewGrandTotal').innerText = totalPrice.toLocaleString();
             document.getElementById('previewPartsSum').innerText = partsSum.toLocaleString();
-            document.getElementById('previewRepairCost').innerText = repairCost.toLocaleString();
-            document.getElementById('previewGrandTotal').innerText = total.toLocaleString();
+            const netEl = document.getElementById('previewNetRepair');
+            netEl.innerText = netRepair.toLocaleString();
+            netEl.className = `font-mono text-base ${netRepair < 0 ? 'text-red-600' : 'text-amber-800'}`;
         }
 
         function updateEditPreview() {
             const parts = collectPartsFromContainer('editPartsContainer');
             const partsSum = parts.reduce((acc, p) => acc + (parseFloat(p.price) || 0), 0);
-            const repairCost = parseFloat(document.getElementById('editRRepairCost').value) || 0;
-            const total = partsSum + repairCost;
+            const totalPrice = parseFloat(document.getElementById('editRTotalPrice').value) || 0;
+            const netRepair = totalPrice - partsSum;
 
+            document.getElementById('editPreviewGrandTotal').innerText = totalPrice.toLocaleString();
             document.getElementById('editPreviewPartsSum').innerText = partsSum.toLocaleString();
-            document.getElementById('editPreviewRepairCost').innerText = repairCost.toLocaleString();
-            document.getElementById('editPreviewGrandTotal').innerText = total.toLocaleString();
+            const netEl = document.getElementById('editPreviewNetRepair');
+            netEl.innerText = netRepair.toLocaleString();
+            netEl.className = `font-mono text-base ${netRepair < 0 ? 'text-red-600' : 'text-amber-800'}`;
         }
 
         async function pushLog(actionLabel, deviceData, deviceKey) {
@@ -668,7 +689,8 @@
                 ownerPhone: deviceData.ownerPhone || '',
                 deviceModel: deviceData.deviceModel || '',
                 partsTotal: totals.partsTotal,
-                repairCost: totals.repairCost,
+                netRepair: totals.netRepair,
+                repairCost: totals.netRepair,
                 totalAmount: totals.totalAmount,
                 date: new Date().toLocaleString('ar-EG'),
                 timestamp: Date.now()
@@ -679,7 +701,7 @@
             const ownerName = document.getElementById('rOwnerName').value.trim();
             const ownerPhone = fixPhone(document.getElementById('rOwnerPhone').value);
             const deviceModel = document.getElementById('rDeviceModel').value.trim();
-            const repairCost = parseFloat(document.getElementById('rRepairCost').value) || 0;
+            const totalAmount = parseFloat(document.getElementById('rTotalPrice').value) || 0;
             const issueDesc = document.getElementById('rIssueDesc').value.trim();
             const parts = collectPartsFromContainer('addPartsContainer');
 
@@ -689,20 +711,22 @@
             }
 
             const partsTotal = parts.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
-            const totalAmount = partsTotal + repairCost;
+            const netRepair = totalAmount - partsTotal;
             const nowStr = new Date().toLocaleString('ar-EG');
             const timestamp = Date.now();
             const newKey = 'rep_' + timestamp + '_' + Math.floor(Math.random() * 1000);
 
             const record = {
                 id: newKey,
+                pricingMode: 'deduct_parts',
                 ownerName,
                 ownerPhone,
                 deviceModel,
                 issueDesc,
                 parts,
                 partsTotal,
-                repairCost,
+                repairCost: netRepair,
+                netRepair,
                 totalAmount,
                 date: nowStr,
                 timestamp,
@@ -717,7 +741,7 @@
                 document.getElementById('rOwnerName').value = '';
                 document.getElementById('rOwnerPhone').value = '';
                 document.getElementById('rDeviceModel').value = '';
-                document.getElementById('rRepairCost').value = '';
+                document.getElementById('rTotalPrice').value = '';
                 document.getElementById('rIssueDesc').value = '';
                 document.getElementById('addPartsContainer').innerHTML = '';
                 addPartRow('add');
@@ -736,13 +760,13 @@
 
             viewingDeviceKey = key;
             const partsList = Array.isArray(dev.parts) ? dev.parts : [];
-            const { partsTotal, repairCost, totalAmount } = calcDeviceTotals(dev);
+            const { partsTotal, netRepair, totalAmount } = calcDeviceTotals(dev);
 
             const partsRowsHtml = partsList.length > 0
                 ? partsList.map((p, idx) => `
                     <div class="flex justify-between items-center bg-indigo-50/70 border border-indigo-100 px-3.5 py-2 rounded-xl text-sm">
                         <span class="font-bold text-slate-800">${idx + 1}. ${escapeHtml(p.name)}</span>
-                        <span class="font-mono font-black text-indigo-700">${(parseFloat(p.price) || 0).toLocaleString()} ج.م</span>
+                        <span class="font-mono font-black text-indigo-700">-${(parseFloat(p.price) || 0).toLocaleString()} ج.م</span>
                     </div>
                 `).join('')
                 : `<div class="text-xs text-slate-400 font-bold bg-slate-50 p-3 rounded-xl border border-slate-100">لا توجد قطع مستخدمة مسجلة</div>`;
@@ -776,22 +800,22 @@
                 </div>
 
                 <div>
-                    <div class="text-xs font-black text-slate-700 mb-2">🧩 القطع المستخدمة وأسعارها:</div>
+                    <div class="text-xs font-black text-slate-700 mb-2">🧩 قطع الغيار المستخدمة (تُخصم من الإجمالي):</div>
                     <div class="space-y-2">${partsRowsHtml}</div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2.5 pt-2">
+                    <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-center">
+                        <div class="text-[10px] text-emerald-700 font-bold">الإجمالي الكلي</div>
+                        <div class="font-mono font-black text-lg text-emerald-800">${totalAmount.toLocaleString()} ج.م</div>
+                    </div>
                     <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-100 text-center">
                         <div class="text-[10px] text-indigo-600 font-bold">سعر القطع</div>
                         <div class="font-mono font-black text-base text-indigo-800">${partsTotal.toLocaleString()} ج.م</div>
                     </div>
                     <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100 text-center">
-                        <div class="text-[10px] text-amber-700 font-bold">تكلفة الصيانة</div>
-                        <div class="font-mono font-black text-base text-amber-800">${repairCost.toLocaleString()} ج.م</div>
-                    </div>
-                    <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-center">
-                        <div class="text-[10px] text-emerald-700 font-bold">الإجمالي الكلي</div>
-                        <div class="font-mono font-black text-lg text-emerald-800">${totalAmount.toLocaleString()} ج.م</div>
+                        <div class="text-[10px] text-amber-700 font-bold">صافي الصيانة</div>
+                        <div class="font-mono font-black text-base ${netRepair < 0 ? 'text-red-600' : 'text-amber-800'}">${netRepair.toLocaleString()} ج.م</div>
                     </div>
                 </div>
             `;
@@ -817,9 +841,9 @@
                     `الموبايل: ${dev.ownerPhone || '-'}`,
                     `الجهاز: ${dev.deviceModel}`,
                     `العطل/الإصلاح: ${dev.issueDesc || '-'}`,
-                    `القطع: ${partsSummary} (إجمالي القطع: ${partsTotal} ج.م)`,
-                    `تكلفة الصيانة: ${repairCost} ج.م`,
                     `الإجمالي الكلي: ${totalAmount} ج.م`,
+                    `القطع: ${partsSummary} (إجمالي القطع: ${partsTotal} ج.م)`,
+                    `صافي الصيانة: ${netRepair} ج.م`,
                     `التاريخ: ${dev.date || ''}`
                 ].join('\n');
                 navigator.clipboard?.writeText(text).then(() => {
@@ -849,7 +873,7 @@
                             <strong>القطع المستخدمة:</strong>
                             <ul>${partsSummary}</ul>
                             <p><strong>إجمالي القطع:</strong> ${partsTotal.toLocaleString()} ج.م</p>
-                            <p><strong>تكلفة الصيانة:</strong> ${repairCost.toLocaleString()} ج.م</p>
+                            <p><strong>صافي الصيانة:</strong> ${netRepair.toLocaleString()} ج.م</p>
                             <p style="font-size:18px"><strong>الإجمالي الكلي:</strong> ${totalAmount.toLocaleString()} ج.م</p>
                         </div>
                     </body></html>
@@ -870,11 +894,13 @@
             const dev = repairedDevices.find(d => d && d._key === key && !d.deleted);
             if (!dev) return;
 
+            const { totalAmount } = calcDeviceTotals(dev);
+
             editingDeviceKey = key;
             document.getElementById('editROwnerName').value = dev.ownerName || '';
             document.getElementById('editROwnerPhone').value = dev.ownerPhone || '';
             document.getElementById('editRDeviceModel').value = dev.deviceModel || '';
-            document.getElementById('editRRepairCost').value = dev.repairCost || 0;
+            document.getElementById('editRTotalPrice').value = totalAmount;
             document.getElementById('editRIssueDesc').value = dev.issueDesc || '';
             document.getElementById('editRDate').value = dev.date || '';
 
@@ -899,7 +925,7 @@
             const ownerName = document.getElementById('editROwnerName').value.trim();
             const ownerPhone = fixPhone(document.getElementById('editROwnerPhone').value);
             const deviceModel = document.getElementById('editRDeviceModel').value.trim();
-            const repairCost = parseFloat(document.getElementById('editRRepairCost').value) || 0;
+            const totalAmount = parseFloat(document.getElementById('editRTotalPrice').value) || 0;
             const issueDesc = document.getElementById('editRIssueDesc').value.trim();
             const dateStr = document.getElementById('editRDate').value.trim() || new Date().toLocaleString('ar-EG');
             const parts = collectPartsFromContainer('editPartsContainer');
@@ -910,17 +936,19 @@
             }
 
             const partsTotal = parts.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
-            const totalAmount = partsTotal + repairCost;
+            const netRepair = totalAmount - partsTotal;
             const updatedAt = Date.now();
 
             const updates = {
+                pricingMode: 'deduct_parts',
                 ownerName,
                 ownerPhone,
                 deviceModel,
                 issueDesc,
                 parts,
                 partsTotal,
-                repairCost,
+                repairCost: netRepair,
+                netRepair,
                 totalAmount,
                 date: dateStr,
                 updatedAt
@@ -928,7 +956,7 @@
 
             try {
                 await database.ref(`${DEVICES_PATH}/${editingDeviceKey}`).update(updates);
-                await pushLog('تعديل بيانات جهاز ✏️', { ...updates, totalAmount }, editingDeviceKey);
+                await pushLog('تعديل بيانات جهاز ✏️', updates, editingDeviceKey);
                 closeEditRepairedModal();
             } catch (err) {
                 alert("❌ تعذر حفظ التعديلات: " + err.message);
@@ -961,27 +989,27 @@
                     const partsText = Array.isArray(d.parts)
                         ? d.parts.map(p => `${p.name || ''} ${p.price || ''}`).join(' ')
                         : '';
-                    const hay = `${d.ownerName || ''} ${d.ownerPhone || ''} ${d.deviceModel || ''} ${d.issueDesc || ''} ${d.repairCost || ''} ${d.totalAmount || ''} ${d.date || ''} ${partsText}`.toLowerCase();
+                    const hay = `${d.ownerName || ''} ${d.ownerPhone || ''} ${d.deviceModel || ''} ${d.issueDesc || ''} ${d.repairCost || ''} ${d.netRepair || ''} ${d.totalAmount || ''} ${d.date || ''} ${partsText}`.toLowerCase();
                     return hay.includes(q);
                 })
                 .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-            let grandRepairCost = 0;
+            let grandNetRepair = 0;
             let grandPartsCost = 0;
             let grandTotal = 0;
 
             activeList.forEach(d => {
                 const t = calcDeviceTotals(d);
-                grandRepairCost += t.repairCost;
+                grandNetRepair += t.netRepair;
                 grandPartsCost += t.partsTotal;
                 grandTotal += t.totalAmount;
             });
 
             document.getElementById('totalDevicesCount').innerText = activeList.length.toLocaleString();
-            document.getElementById('totalRepairCostSummary').innerText = grandRepairCost.toLocaleString() + " ج.م";
             document.getElementById('totalPartsCostSummary').innerText = grandPartsCost.toLocaleString() + " ج.م";
+            document.getElementById('totalNetProfitSummary').innerText = grandNetRepair.toLocaleString() + " ج.م";
             document.getElementById('totalRepairedAmount').innerText = grandTotal.toLocaleString() + " ج.م";
-            document.getElementById('filteredStatsBadge').innerText = `عرض: ${activeList.length} سجل | صيانة: ${grandRepairCost.toLocaleString()} ج | قطع: ${grandPartsCost.toLocaleString()} ج | إجمالي: ${grandTotal.toLocaleString()} ج`;
+            document.getElementById('filteredStatsBadge').innerText = `عرض: ${activeList.length} سجل | إجمالي: ${grandTotal.toLocaleString()} ج | قطع: ${grandPartsCost.toLocaleString()} ج | صافي صيانة: ${grandNetRepair.toLocaleString()} ج`;
 
             if (activeList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-400 font-bold">لا توجد أجهزة مُصلَّحة مطابقة للبحث حالياً</td></tr>`;
@@ -990,9 +1018,9 @@
 
             let html = '';
             activeList.forEach(dev => {
-                const { partsTotal, repairCost, totalAmount } = calcDeviceTotals(dev);
+                const { partsTotal, netRepair, totalAmount } = calcDeviceTotals(dev);
                 const partsHtml = (Array.isArray(dev.parts) && dev.parts.length > 0)
-                    ? dev.parts.map(p => `<div class="flex justify-between items-center gap-2 bg-indigo-50/70 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs mb-1"><span class="font-bold text-slate-700">${escapeHtml(p.name)}</span><span class="font-mono font-black text-indigo-700">${(parseFloat(p.price) || 0).toLocaleString()} ج</span></div>`).join('') +
+                    ? dev.parts.map(p => `<div class="flex justify-between items-center gap-2 bg-indigo-50/70 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs mb-1"><span class="font-bold text-slate-700">${escapeHtml(p.name)}</span><span class="font-mono font-black text-indigo-700">-${(parseFloat(p.price) || 0).toLocaleString()} ج</span></div>`).join('') +
                       `<div class="text-[10px] font-mono font-bold text-indigo-600 mt-1">مجموع القطع: ${partsTotal.toLocaleString()} ج</div>`
                     : `<span class="text-xs text-slate-400 font-bold">لا توجد قطع (0 ج)</span>`;
 
@@ -1011,8 +1039,8 @@
                         <td class="p-4 text-right min-w-[190px]">
                             ${partsHtml}
                         </td>
-                        <td class="p-4 text-center font-mono font-black text-amber-700 text-sm">
-                            ${repairCost.toLocaleString()} ج.م
+                        <td class="p-4 text-center font-mono font-black ${netRepair < 0 ? 'text-red-600' : 'text-amber-700'} text-sm">
+                            ${netRepair.toLocaleString()} ج.م
                         </td>
                         <td class="p-4 text-center font-mono font-black text-emerald-700 text-base">
                             ${totalAmount.toLocaleString()} ج.م
@@ -1063,7 +1091,7 @@
 
                 const linkedDev = log.deviceKey ? repairedDevices.find(d => d && d._key === log.deviceKey && !d.deleted) : null;
                 const totals = linkedDev ? calcDeviceTotals(linkedDev) : {
-                    repairCost: parseFloat(log.repairCost) || 0,
+                    netRepair: parseFloat(log.netRepair !== undefined ? log.netRepair : log.repairCost) || 0,
                     totalAmount: parseFloat(log.totalAmount) || 0
                 };
 
@@ -1081,7 +1109,7 @@
                             📱 ${escapeHtml(log.deviceModel || '')}
                         </div>
                         <div class="flex justify-between items-center text-[10px] font-mono font-bold bg-white/80 px-2 py-1 rounded-lg border border-slate-100">
-                            <span class="text-amber-700">صيانة: ${totals.repairCost.toLocaleString()} ج</span>
+                            <span class="text-amber-700">صافي: ${totals.netRepair.toLocaleString()} ج</span>
                             <span class="text-emerald-700 font-black">إجمالي: ${totals.totalAmount.toLocaleString()} ج</span>
                         </div>
                         <div class="flex justify-between items-center text-[9px] text-slate-400 font-mono mt-1.5 pt-1 border-t border-slate-100">
@@ -1102,11 +1130,11 @@
                 return;
             }
 
-            const headers = ["اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "القطع وأسعارها", "إجمالي القطع", "تكلفة الصيانة", "الإجمالي الكلي", "التاريخ والوقت"];
+            const headers = ["اسم صاحب الجهاز", "رقم التليفون", "نوع الجهاز", "العطل/الإصلاح", "القطع وأسعارها", "إجمالي القطع", "صافي الصيانة", "الإجمالي الكلي", "التاريخ والوقت"];
             const csvLines = [headers.join(',')];
 
             rows.forEach(d => {
-                const { partsTotal, repairCost, totalAmount } = calcDeviceTotals(d);
+                const { partsTotal, netRepair, totalAmount } = calcDeviceTotals(d);
                 const partsStr = Array.isArray(d.parts)
                     ? d.parts.map(p => `${p.name} (${p.price})`).join(' | ')
                     : '';
@@ -1117,7 +1145,7 @@
                     d.issueDesc || '',
                     partsStr,
                     partsTotal,
-                    repairCost,
+                    netRepair,
                     totalAmount,
                     d.date || ''
                 ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
